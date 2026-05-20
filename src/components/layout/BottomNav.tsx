@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, ArrowLeftRight, CreditCard, Settings } from 'lucide-react';
 import { clsx } from '@/lib/utils';

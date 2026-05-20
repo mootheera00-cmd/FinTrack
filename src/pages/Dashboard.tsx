@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  Wallet,
   TrendingDown,
   CreditCard,
   Sparkles,
@@ -13,7 +12,6 @@ import Layout from '@/components/layout/Layout';
 import Header from '@/components/layout/Header';
 import { Card, StatCard } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useInstallments } from '@/hooks/useInstallments';
 import { useForecasting } from '@/hooks/useForecasting';

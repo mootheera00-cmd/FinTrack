@@ -4,12 +4,13 @@ import { clsx } from '@/lib/utils';
 interface CardProps {
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
   onClick?: () => void;
   /** Use 'elevated' for nested depth, 'glass' for frosted look */
   variant?: 'default' | 'elevated' | 'glass';
 }
 
-export function Card({ children, className, onClick, variant = 'default' }: CardProps) {
+export function Card({ children, className, style, onClick, variant = 'default' }: CardProps) {
   const base = 'rounded-2xl p-4 transition-all duration-200';
 
   const variants = {
@@ -23,6 +24,7 @@ export function Card({ children, className, onClick, variant = 'default' }: Card
   return (
     <div
       className={clsx(base, variants[variant], interactive, className)}
+      style={style}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

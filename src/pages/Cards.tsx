@@ -1,5 +1,4 @@
-import React from 'react';
-import { Plus, CreditCard as CardIcon, ChevronRight, Layers } from 'lucide-react';
+import { Plus, CreditCard as CardIcon, Layers } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import Header from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';

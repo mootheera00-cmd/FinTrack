@@ -30,7 +30,7 @@ function SettingRow({ icon, label, value, onClick, iconBg = 'bg-slate-500/15' }:
 }
 
 export default function Settings() {
-  const { profile, loading, updateProfile } = useProfile();
+  const { profile, updateProfile } = useProfile();
   const [incomeInput, setIncomeInput]     = useState('');
   const [cashInput, setCashInput]         = useState('');
   const [saving, setSaving]               = useState(false);

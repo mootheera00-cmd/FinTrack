@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, Search, ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import Header from '@/components/layout/Header';
 import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useProfile } from '@/hooks/useProfile';
