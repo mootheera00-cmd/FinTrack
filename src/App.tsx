@@ -3,18 +3,46 @@ import Dashboard    from '@/pages/Dashboard';
 import Transactions from '@/pages/Transactions';
 import Cards        from '@/pages/Cards';
 import Settings     from '@/pages/Settings';
+import AuthPage     from '@/pages/AuthPage';
+import { useAuth }  from '@/hooks/useAuth';
+
+function AppRoutes() {
+  const { session, loading } = useAuth();
+
+  // Show blank screen while checking session (avoids flash of wrong page)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-400/30 border-t-brand-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Not logged in → show Auth page for all routes
+  if (!session) {
+    return (
+      <Routes>
+        <Route path="*" element={<AuthPage />} />
+      </Routes>
+    );
+  }
+
+  // Logged in → show main app
+  return (
+    <Routes>
+      <Route path="/"             element={<Dashboard />} />
+      <Route path="/transactions" element={<Transactions />} />
+      <Route path="/cards"        element={<Cards />} />
+      <Route path="/settings"     element={<Settings />} />
+      <Route path="*"             element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/"             element={<Dashboard />} />
-        <Route path="/transactions" element={<Transactions />} />
-        <Route path="/cards"        element={<Cards />} />
-        <Route path="/settings"     element={<Settings />} />
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

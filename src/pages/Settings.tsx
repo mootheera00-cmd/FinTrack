@@ -51,7 +51,7 @@ export default function Settings() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.reload();
+    // useAuth in App.tsx detects session change and redirects to AuthPage automatically
   };
 
   return (
@@ -129,7 +129,7 @@ export default function Settings() {
               icon={<Moon size={16} className="text-blue-600" />}
               iconBg="bg-blue-50"
               label="Dark Mode"
-              value="Always on"
+              value="Light"
             />
           </Card>
         </div>
