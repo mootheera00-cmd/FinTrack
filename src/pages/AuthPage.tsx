@@ -41,6 +41,8 @@ export default function AuthPage() {
       // Translate common Supabase error messages
       if (msg.includes('Invalid login credentials')) {
         setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else if (msg.includes('Email not confirmed')) {
+        setError('กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ — ตรวจสอบ inbox ของคุณ หรือติดต่อผู้ดูแลระบบ');
       } else if (msg.includes('User already registered')) {
         setError('อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
       } else if (msg.includes('Password should be at least')) {

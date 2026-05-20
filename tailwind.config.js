@@ -32,12 +32,17 @@ export default {
         'safe-top': 'env(safe-area-inset-top)',
       },
       animation: {
-        'fade-up': 'fadeUp 0.4s ease-out both',
+        'fade-up':    'fadeUp 0.4s ease-out both',
+        'slide-up':   'slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) both',
       },
       keyframes: {
         fadeUp: {
-          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '0%':   { opacity: '0', transform: 'translateY(16px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideUp: {
+          '0%':   { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
         },
       },
     },

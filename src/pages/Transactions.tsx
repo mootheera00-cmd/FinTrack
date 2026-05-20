@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useProfile } from '@/hooks/useProfile';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import type { TransactionType } from '@/types';
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -20,8 +21,9 @@ export default function Transactions() {
   const currency = profile?.currency ?? 'THB';
   const { transactions, totalIncome, totalExpenses, loading, remove } = useTransactions();
 
-  const [filter, setFilter] = useState<'all' | TransactionType>('all');
-  const [query, setQuery]   = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [filter, setFilter]   = useState<'all' | TransactionType>('all');
+  const [query, setQuery]     = useState('');
 
   const filtered = transactions.filter((t) => {
     const matchType  = filter === 'all' || t.type === filter;
@@ -34,7 +36,7 @@ export default function Transactions() {
       <Header
         title="Transactions"
         right={
-          <Button size="sm" icon={<Plus size={16} />}>
+          <Button size="sm" icon={<Plus size={16} />} onClick={() => setShowAdd(true)}>
             Add
           </Button>
         }
@@ -133,6 +135,8 @@ export default function Transactions() {
           </Card>
         )}
       </div>
+
+      <AddTransactionModal open={showAdd} onClose={() => setShowAdd(false)} />
     </Layout>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Plus, CreditCard as CardIcon, Layers } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import Header from '@/components/layout/Header';
@@ -8,6 +9,8 @@ import { useCreditCards } from '@/hooks/useCreditCards';
 import { useInstallments } from '@/hooks/useInstallments';
 import { useProfile } from '@/hooks/useProfile';
 import { formatCurrency } from '@/lib/utils';
+import { AddCardModal } from '@/components/modals/AddCardModal';
+import { AddInstallmentModal } from '@/components/modals/AddInstallmentModal';
 import type { CreditCard, Installment } from '@/types';
 
 // ─── Credit Card Visual ───────────────────────────────────────
@@ -15,9 +18,11 @@ interface CreditCardTileProps {
   card: CreditCard;
   installments: Installment[];
   currency: string;
+  onAddInstallment: (cardId: string) => void;
+  onMarkPaid: (installmentId: string) => void;
 }
 
-function CreditCardTile({ card, installments, currency }: CreditCardTileProps) {
+function CreditCardTile({ card, installments, currency, onAddInstallment, onMarkPaid }: CreditCardTileProps) {
   const cardInstallments = installments.filter(
     (i) => i.credit_card_id === card.id && i.is_active && i.paid_months < i.total_months
   );
@@ -64,9 +69,18 @@ function CreditCardTile({ card, installments, currency }: CreditCardTileProps) {
               <div key={inst.id} className="px-4 py-3">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-sm font-medium text-slate-900">{inst.description}</p>
-                  <span className="text-sm font-bold text-blue-600 tabular-nums shrink-0 ml-2">
-                    {formatCurrency(inst.monthly_amount, currency)}/mo
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span className="text-sm font-bold text-blue-600 tabular-nums">
+                      {formatCurrency(inst.monthly_amount, currency)}/mo
+                    </span>
+                    <button
+                      onClick={() => onMarkPaid(inst.id)}
+                      title="Mark this month as paid"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 active:scale-95 transition-all text-base leading-none"
+                    >
+                      ✓
+                    </button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -84,6 +98,15 @@ function CreditCardTile({ card, installments, currency }: CreditCardTileProps) {
           })}
         </Card>
       )}
+
+      {/* Add installment for this card */}
+      <button
+        onClick={() => onAddInstallment(card.id)}
+        className="w-full mb-1 py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-xl border border-dashed border-slate-300 hover:border-brand-400 transition-all"
+      >
+        <Plus size={14} />
+        Add Installment
+      </button>
     </div>
   );
 }
@@ -93,9 +116,18 @@ export default function Cards() {
   const { profile } = useProfile();
   const currency = profile?.currency ?? 'THB';
   const { cards, loading: cardsLoading }           = useCreditCards();
-  const { installments, totalMonthlyDue, loading: installLoading } = useInstallments();
+  const { installments, totalMonthlyDue, loading: installLoading, markPaid } = useInstallments();
 
   const isLoading = cardsLoading || installLoading;
+
+  const [showAddCard, setShowAddCard]           = useState(false);
+  const [showAddInst, setShowAddInst]           = useState(false);
+  const [selectedCardId, setSelectedCardId]     = useState<string | undefined>();
+
+  function handleAddInstallment(cardId: string) {
+    setSelectedCardId(cardId);
+    setShowAddInst(true);
+  }
 
   return (
     <Layout>
@@ -103,7 +135,7 @@ export default function Cards() {
         title="Credit Cards"
         subtitle={`${cards.length} card${cards.length !== 1 ? 's' : ''} · Total due ${formatCurrency(totalMonthlyDue, currency)}`}
         right={
-          <Button size="sm" icon={<Plus size={16} />}>
+          <Button size="sm" icon={<Plus size={16} />} onClick={() => setShowAddCard(true)}>
             Add Card
           </Button>
         }
@@ -121,7 +153,9 @@ export default function Cards() {
             <Card className="text-center py-12 space-y-3">
               <CardIcon size={40} className="text-slate-600 mx-auto" />
               <p className="text-slate-500">No credit cards yet</p>
-              <Button size="sm" icon={<Plus size={16} />}>Add your first card</Button>
+              <Button size="sm" icon={<Plus size={16} />} onClick={() => setShowAddCard(true)}>
+                Add your first card
+              </Button>
             </Card>
           </div>
         ) : (
@@ -131,6 +165,8 @@ export default function Cards() {
               card={card}
               installments={installments}
               currency={currency}
+              onAddInstallment={handleAddInstallment}
+              onMarkPaid={(id) => void markPaid(id)}
             />
           ))
         )}
@@ -152,6 +188,14 @@ export default function Cards() {
           </Card>
         )}
       </div>
+
+      <AddCardModal open={showAddCard} onClose={() => setShowAddCard(false)} />
+      <AddInstallmentModal
+        open={showAddInst}
+        onClose={() => { setShowAddInst(false); setSelectedCardId(undefined); }}
+        cards={cards}
+        defaultCardId={selectedCardId}
+      />
     </Layout>
   );
 }
