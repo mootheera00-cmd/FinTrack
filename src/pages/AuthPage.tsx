@@ -68,7 +68,7 @@ export default function AuthPage() {
       {/* Top gradient decoration */}
       <div
         className="h-64 flex-shrink-0 flex flex-col items-center justify-end pb-8"
-        style={{ background: 'linear-gradient(135deg, #16a34a 0%, #0f766e 60%, #1d4ed8 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #FFBF00 0%, #f59e0b 60%, #d97706 100%)' }}
       >
         {/* Decorative blobs */}
         <div className="absolute top-0 left-0 w-full h-64 overflow-hidden pointer-events-none">
@@ -78,12 +78,12 @@ export default function AuthPage() {
 
         {/* Logo */}
         <div className="relative flex flex-col items-center gap-3">
-          <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center shadow-lg">
-            <Wallet size={32} className="text-white" />
+          <div className="w-16 h-16 bg-slate-900/15 backdrop-blur rounded-2xl flex items-center justify-center shadow-lg">
+            <Wallet size={32} className="text-slate-900" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white tracking-tight">FinTrack</h1>
-            <p className="text-sm text-white/70 mt-0.5">Personal Finance Manager</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">FinTrack</h1>
+            <p className="text-sm text-slate-800/70 mt-0.5">Personal Finance Manager</p>
           </div>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function AuthPage() {
               onClick={() => setMode('signin')}
               className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                 !isSignUp
-                  ? 'text-brand-500 border-b-2 border-brand-500 bg-green-50/50'
+                  ? 'text-brand-500 border-b-2 border-brand-500 bg-amber-50/50'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -107,7 +107,7 @@ export default function AuthPage() {
               onClick={() => setMode('signup')}
               className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                 isSignUp
-                  ? 'text-brand-500 border-b-2 border-brand-500 bg-green-50/50'
+                  ? 'text-brand-500 border-b-2 border-brand-500 bg-amber-50/50'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >

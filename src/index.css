@@ -13,7 +13,7 @@
 
   html {
     /* Prevent elastic scroll bounce revealing white on iOS */
-    background-color: #f0f4ff;
+    background-color: #fffdf5;
     /* Smooth scrolling on iOS */
     -webkit-overflow-scrolling: touch;
   }

@@ -29,25 +29,25 @@ function HeroCard({ liquidCash, currency, loading }: HeroCardProps) {
   return (
     <div
       className="relative overflow-hidden rounded-3xl mx-4 p-6"
-      style={{ background: 'linear-gradient(135deg, #16a34a 0%, #0f766e 60%, #1d4ed8 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #FFBF00 0%, #f59e0b 60%, #d97706 100%)' }}
     >
       {/* Decorative blobs */}
       <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
       <div className="absolute -bottom-8 -left-8  w-32 h-32 rounded-full bg-white/10 blur-xl" />
 
-      <p className="text-sm font-medium text-white/70 mb-1">Current Liquid Cash</p>
+      <p className="text-sm font-medium text-slate-800/80 mb-1">Current Liquid Cash</p>
 
       {loading ? (
-        <div className="h-10 w-48 bg-white/20 rounded-xl animate-pulse" />
+        <div className="h-10 w-48 bg-slate-900/10 rounded-xl animate-pulse" />
       ) : (
-        <p className="text-4xl font-bold text-white tracking-tight tabular-nums">
+        <p className="text-4xl font-bold text-slate-900 tracking-tight tabular-nums">
           {formatCurrency(liquidCash, currency)}
         </p>
       )}
 
       <div className="flex items-center gap-2 mt-4">
-        <span className="flex items-center gap-1 text-xs text-white/80 bg-white/15 rounded-full px-3 py-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
+        <span className="flex items-center gap-1 text-xs text-slate-800 bg-slate-900/10 rounded-full px-3 py-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-700 animate-pulse" />
           Live Balance
         </span>
       </div>
