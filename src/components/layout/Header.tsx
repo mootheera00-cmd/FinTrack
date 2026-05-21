@@ -12,13 +12,15 @@ export default function Header({ title, subtitle, right, className }: HeaderProp
   return (
     <header
       className={clsx(
-        'sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/80',
-        'flex items-end justify-between px-5 pb-3',
+        'sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/80',
+        'flex items-end justify-between pb-3',
         className
       )}
       style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        height: 'calc(3.5rem + env(safe-area-inset-top))'
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingLeft: 'calc(1.25rem + env(safe-area-inset-left, 0px))',
+        paddingRight: 'calc(1.25rem + env(safe-area-inset-right, 0px))',
+        minHeight: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
       }}
     >
       <div className="flex flex-col justify-center">

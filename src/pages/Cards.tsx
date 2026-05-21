@@ -141,7 +141,7 @@ export default function Cards() {
         }
       />
 
-      <div className="pt-4 pb-2 space-y-5">
+      <div className="pt-4 pb-6 space-y-5">
         {isLoading ? (
           <div className="mx-4 space-y-4">
             {[1, 2].map((i) => (

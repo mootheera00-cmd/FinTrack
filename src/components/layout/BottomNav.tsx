@@ -14,7 +14,11 @@ export default function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-[0_-1px_20px_rgba(0,0,0,0.06)]"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
+      }}
       aria-label="Main navigation"
     >
       <ul className="flex items-center justify-around h-16">

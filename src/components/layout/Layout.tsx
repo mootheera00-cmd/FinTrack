@@ -14,11 +14,10 @@ interface LayoutProps {
 export default function Layout({ children, className }: LayoutProps) {
   return (
     <div
-      className={clsx('min-h-screen bg-surface text-slate-900', className)}
+      className={clsx('min-h-[100dvh] bg-surface text-slate-900', className)}
     >
       <main
-        className="pb-24"
-        style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}
+        style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}
       >
         {children}
       </main>

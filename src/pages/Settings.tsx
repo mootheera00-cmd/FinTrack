@@ -58,7 +58,7 @@ export default function Settings() {
     <Layout>
       <Header title="Settings" />
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 pb-6 space-y-4">
         {/* Profile info */}
         <Card className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-brand-50 border-2 border-brand-200 flex items-center justify-center shrink-0">

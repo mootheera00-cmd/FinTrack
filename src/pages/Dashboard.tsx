@@ -382,7 +382,7 @@ export default function Dashboard() {
         }
       />
 
-      <div className="space-y-4 pt-4 pb-2">
+      <div className="space-y-4 pt-4 pb-4">
         {/* Hero: Liquid Cash */}
         <HeroCard
           liquidCash={profile?.liquid_cash ?? 0}
