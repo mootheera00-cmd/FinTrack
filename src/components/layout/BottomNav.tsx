@@ -1,12 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ArrowLeftRight, CreditCard, Settings } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, CalendarDays, CreditCard, Settings } from 'lucide-react';
 import { clsx } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { to: '/',            icon: LayoutDashboard, label: 'Home'      },
+  { to: '/',             icon: LayoutDashboard, label: 'Home'      },
   { to: '/transactions', icon: ArrowLeftRight,  label: 'Transactions' },
-  { to: '/cards',       icon: CreditCard,      label: 'Cards'     },
-  { to: '/settings',   icon: Settings,        label: 'Settings'  },
+  { to: '/recurring',    icon: CalendarDays,    label: 'Recurring' },
+  { to: '/cards',        icon: CreditCard,      label: 'Cards'     },
+  { to: '/settings',     icon: Settings,        label: 'Settings'  },
 ] as const;
 
 export default function BottomNav() {

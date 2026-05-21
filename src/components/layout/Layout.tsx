@@ -15,7 +15,6 @@ export default function Layout({ children, className }: LayoutProps) {
   return (
     <div
       className={clsx('min-h-screen bg-surface text-slate-900', className)}
-      style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <main
         className="pb-24"

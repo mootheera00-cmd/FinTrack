@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import {
   TrendingDown,
   CreditCard,
@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
+  BarChart3,
 } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import Header from '@/components/layout/Header';
@@ -16,6 +17,8 @@ import { useTransactions } from '@/hooks/useTransactions';
 import { useInstallments } from '@/hooks/useInstallments';
 import { useForecasting } from '@/hooks/useForecasting';
 import { useProfile } from '@/hooks/useProfile';
+import { useRecurringExpenses } from '@/hooks/useRecurringExpenses';
+import { DataContext } from '@/context/DataContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 // ─── Hero Balance Card ────────────────────────────────────────
@@ -138,6 +141,120 @@ function ForecastRow({ label, value, positive = false }: { label: string; value:
   );
 }
 
+// ─── Monthly Summary History Card ─────────────────────────────
+const THAI_MONTHS_SHORT = [
+  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+];
+
+function formatThaiMonth(dateStr: string) {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  const month = date.getMonth();
+  const yearShort = (date.getFullYear() + 543) % 100;
+  return `${THAI_MONTHS_SHORT[month]} ${yearShort}`;
+}
+
+interface MonthlySummaryProps {
+  summary: { month: string; income: number; expense: number; remaining: number }[];
+  currency: string;
+  loading: boolean;
+}
+
+function MonthlySummaryCard({ summary, currency, loading }: MonthlySummaryProps) {
+  const last6Months = summary.slice(-6);
+
+  // Find max value for scaling the height of the chart bars
+  const maxVal = Math.max(
+    ...last6Months.flatMap((s) => [s.income, s.expense]),
+    1 // fallback to avoid division by zero
+  );
+
+  return (
+    <Card className="mx-4 animate-fade-up" style={{ animationDelay: '150ms' } as React.CSSProperties}>
+      <div className="flex items-center gap-2 mb-4">
+        <span className="p-2 rounded-xl bg-emerald-500/15">
+          <BarChart3 size={18} className="text-emerald-500" />
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Monthly Savings Summary</p>
+          <p className="text-xs text-slate-500">สรุปยอดคงเหลือรายเดือน</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-10 bg-slate-100 rounded-xl animate-pulse" />
+        </div>
+      ) : last6Months.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-slate-400 text-xs">ไม่มีข้อมูลประวัติรายเดือน</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Chart Bars */}
+          <div className="flex items-end justify-between h-28 pt-2 px-1 border-b border-slate-100">
+            {last6Months.map((m) => {
+              const incPercent = (m.income / maxVal) * 100;
+              const expPercent = (m.expense / maxVal) * 100;
+
+              return (
+                <div key={m.month} className="flex flex-col items-center flex-1">
+                  <div className="flex items-end gap-1 h-20 w-full justify-center">
+                    {/* Income Bar (Green) */}
+                    <div
+                      style={{ height: `${Math.max(incPercent, 4)}%` }}
+                      className="w-2.5 rounded-t-full bg-gradient-to-t from-emerald-500 to-emerald-400 transition-all duration-500"
+                      title={`รายรับ: ${formatCurrency(m.income, currency)}`}
+                    />
+                    {/* Expense Bar (Red) */}
+                    <div
+                      style={{ height: `${Math.max(expPercent, 4)}%` }}
+                      className="w-2.5 rounded-t-full bg-gradient-to-t from-rose-500 to-rose-400 transition-all duration-500"
+                      title={`รายจ่าย: ${formatCurrency(m.expense, currency)}`}
+                    />
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-400 mt-2 tracking-tight">
+                    {formatThaiMonth(m.month)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quick List Details */}
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {last6Months.slice().reverse().map((m) => {
+              const isSavingsPositive = m.remaining >= 0;
+              const savingsRate = m.income > 0 ? Math.round((m.remaining / m.income) * 100) : 0;
+
+              return (
+                <div key={m.month} className="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0 text-xs">
+                  <span className="font-semibold text-slate-700">{formatThaiMonth(m.month)}</span>
+                  <div className="text-right flex items-center gap-2">
+                    <span className="text-slate-400">
+                      ดุล:{' '}
+                      <span className={isSavingsPositive ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}>
+                        {formatCurrency(m.remaining, currency)}
+                      </span>
+                    </span>
+                    {m.income > 0 && isSavingsPositive && (
+                      <span className="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full">
+                        +{savingsRate}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 // ─── Recent Transactions List ─────────────────────────────────
 interface RecentTransactionsProps {
   transactions: ReturnType<typeof useTransactions>['transactions'];
@@ -154,10 +271,10 @@ function RecentTransactions({ transactions, currency }: RecentTransactionsProps)
   const recent = transactions.slice(0, 5);
 
   return (
-    <div className="mx-4">
+    <div className="mx-4 pb-20">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-slate-700">Recent Transactions</h2>
-        <button className="text-xs text-brand-400 flex items-center gap-0.5">
+        <button className="text-xs text-brand-400 flex items-center gap-0.5 font-medium">
           See all <ChevronRight size={14} />
         </button>
       </div>
@@ -209,6 +326,8 @@ export default function Dashboard() {
   const { profile, loading: profileLoading } = useProfile();
   const currency = profile?.currency ?? 'THB';
 
+  const { monthlySummary, loading: { summary: summaryLoading } } = useContext(DataContext)!;
+
   const {
     transactions,
     totalExpenses,
@@ -222,11 +341,16 @@ export default function Dashboard() {
     loading: installLoading,
   } = useInstallments();
 
+  const {
+    recurringExpenses,
+    loading: recurringLoading,
+  } = useRecurringExpenses();
+
   const forecast = useForecasting({
     liquidCash:    profile?.liquid_cash    ?? 0,
     monthlyIncome: profile?.monthly_income ?? 0,
-    transactions,
     installments,
+    recurringExpenses,
   });
 
   const [refreshing, setRefreshing] = useState(false);
@@ -237,7 +361,7 @@ export default function Dashboard() {
     setRefreshing(false);
   };
 
-  const isLoading = profileLoading || txnLoading || installLoading;
+  const isLoading = profileLoading || txnLoading || installLoading || recurringLoading;
 
   const now = new Date();
   const monthLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -294,6 +418,13 @@ export default function Dashboard() {
           totalCardDue={forecast.totalCardDue}
           currency={currency}
           loading={isLoading}
+        />
+
+        {/* Monthly Summary History Card */}
+        <MonthlySummaryCard
+          summary={monthlySummary}
+          currency={currency}
+          loading={summaryLoading}
         />
 
         {/* Recent transactions */}

@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard    from '@/pages/Dashboard';
 import Transactions from '@/pages/Transactions';
+import Recurring    from '@/pages/Recurring';
 import Cards        from '@/pages/Cards';
 import Settings     from '@/pages/Settings';
 import AuthPage     from '@/pages/AuthPage';
 import { useAuth }  from '@/hooks/useAuth';
+import { DataProvider } from '@/context/DataContext';
 
 function AppRoutes() {
   const { session, loading } = useAuth();
@@ -32,6 +34,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/"             element={<Dashboard />} />
       <Route path="/transactions" element={<Transactions />} />
+      <Route path="/recurring"    element={<Recurring />} />
       <Route path="/cards"        element={<Cards />} />
       <Route path="/settings"     element={<Settings />} />
       <Route path="*"             element={<Navigate to="/" replace />} />
@@ -41,8 +44,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <DataProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </DataProvider>
   );
 }

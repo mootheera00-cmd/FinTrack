@@ -94,6 +94,20 @@ export type TransactionInput = Omit<Transaction, 'id' | 'user_id' | 'created_at'
 export type CreditCardInput  = Omit<CreditCard,  'id' | 'user_id' | 'created_at' | 'updated_at'>;
 export type InstallmentInput = Omit<Installment, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
 
+export interface RecurringExpense {
+  id: string;
+  user_id: string;
+  description: string;
+  amount: number;
+  category: TransactionCategory;
+  due_day: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RecurringExpenseInput = Omit<RecurringExpense, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+
 // ─── Category metadata ────────────────────────────────────────
 export const INCOME_CATEGORIES: { value: TransactionCategory; label: string }[] = [
   { value: 'salary',       label: 'Salary' },

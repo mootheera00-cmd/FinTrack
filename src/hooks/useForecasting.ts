@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import type { ForecastResult, Installment, Transaction } from '@/types';
+import type { ForecastResult, Installment, RecurringExpense } from '@/types';
 
 interface ForecastInput {
   liquidCash: number;
   monthlyIncome: number;
-  transactions: Transaction[];
   installments: Installment[];
+  recurringExpenses: RecurringExpense[];
 }
 
 /**
@@ -13,23 +13,22 @@ interface ForecastInput {
  *
  * Safe to Spend = (Liquid Cash + Expected Income) - (Fixed Expenses + Total Installments Due)
  *
- * "Fixed Expenses" here = sum of recurring expense transactions this month
- * (a proxy until a dedicated fixed-expense table is added).
+ * "Fixed Expenses" here = sum of actual active recurring expenses.
  */
 export function useForecasting({
   liquidCash,
   monthlyIncome,
-  transactions,
   installments,
+  recurringExpenses,
 }: ForecastInput): ForecastResult {
   return useMemo(() => {
     const currentLiquidCash = liquidCash;
     const expectedIncome    = monthlyIncome;
 
-    // Sum of expense transactions in the current month as fixed cost proxy
-    const fixedExpenses = transactions
-      .filter((t) => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
+    // Sum of active recurring expenses (e.g. rent, internet, subscriptions)
+    const fixedExpenses = recurringExpenses
+      .filter((r) => r.is_active)
+      .reduce((sum, r) => sum + r.amount, 0);
 
     // Total installment charges due next cycle (all active, not yet paid-off)
     const totalCardDue = installments
@@ -46,5 +45,5 @@ export function useForecasting({
       totalCardDue,
       safeToSpend,
     };
-  }, [liquidCash, monthlyIncome, transactions, installments]);
+  }, [liquidCash, monthlyIncome, installments, recurringExpenses]);
 }

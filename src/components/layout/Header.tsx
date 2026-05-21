@@ -12,19 +12,22 @@ export default function Header({ title, subtitle, right, className }: HeaderProp
   return (
     <header
       className={clsx(
-        'sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80',
-        'flex items-center justify-between px-5 h-14',
+        'sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/80',
+        'flex items-end justify-between px-5 pb-3',
         className
       )}
-      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        height: 'calc(3.5rem + env(safe-area-inset-top))'
+      }}
     >
-      <div>
+      <div className="flex flex-col justify-center">
         <h1 className="text-lg font-bold text-slate-900 leading-tight">{title}</h1>
         {subtitle && (
-          <p className="text-xs text-slate-500 leading-none mt-0.5">{subtitle}</p>
+          <p className="text-[10px] text-slate-500 leading-none mt-1">{subtitle}</p>
         )}
       </div>
-      {right && <div className="flex items-center gap-2">{right}</div>}
+      {right && <div className="flex items-center gap-2 mb-0.5">{right}</div>}
     </header>
   );
 }
