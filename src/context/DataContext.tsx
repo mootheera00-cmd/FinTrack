@@ -109,10 +109,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [sessionUser, setSessionUser] = useState<{ id: string } | null>(null);
 
-  // Sync auth state
+  // Sync auth state — auto sign-in anonymously (single-user mode, no login screen)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSessionUser(session?.user ?? null);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        setSessionUser(session.user);
+      } else {
+        // No existing session → sign in anonymously (session persists in localStorage)
+        const { data } = await supabase.auth.signInAnonymously();
+        setSessionUser(data.user ?? null);
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSessionUser(session?.user ?? null);
