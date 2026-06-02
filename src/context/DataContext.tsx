@@ -132,7 +132,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       .from('profiles')
       .select('*')
       .eq('id', sessionUser.id)
-      .single();
+      .maybeSingle();
     if (data) setProfile(data as Profile);
   }, [sessionUser]);
 
