@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ArrowLeftRight, CalendarDays, CreditCard, Settings } from 'lucide-react';
 import { clsx } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { to: '/',             icon: LayoutDashboard, label: 'Home'      },
-  { to: '/transactions', icon: ArrowLeftRight,  label: 'Transactions' },
-  { to: '/recurring',    icon: CalendarDays,    label: 'Recurring' },
-  { to: '/cards',        icon: CreditCard,      label: 'Cards'     },
-  { to: '/settings',     icon: Settings,        label: 'Settings'  },
+  { to: '/',             emoji: '💰', label: 'รายรับ'    },
+  { to: '/expenses',     emoji: '💸', label: 'รายจ่าย'   },
+  { to: '/installments', emoji: '📋', label: 'ผ่อน'       },
+  { to: '/shared',       emoji: '🤝', label: 'ซื้อร่วม'  },
+  { to: '/chart',        emoji: '📊', label: 'กราฟ'       },
+  { to: '/forecast',     emoji: '🔮', label: 'พยากรณ์'   },
 ] as const;
 
 export default function BottomNav() {
@@ -22,7 +22,7 @@ export default function BottomNav() {
       aria-label="Main navigation"
     >
       <ul className="flex items-center justify-around h-16">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+        {NAV_ITEMS.map(({ to, emoji, label }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}
@@ -30,9 +30,7 @@ export default function BottomNav() {
               className={({ isActive }) =>
                 clsx(
                   'flex flex-col items-center justify-center gap-0.5 py-2 w-full min-h-[48px] transition-all duration-200',
-                  isActive
-                    ? 'text-brand-400'
-                    : 'text-slate-400 hover:text-slate-700'
+                  isActive ? 'text-brand-600' : 'text-slate-400 hover:text-slate-700'
                 )
               }
               aria-label={label}
@@ -41,16 +39,18 @@ export default function BottomNav() {
                 <>
                   <span
                     className={clsx(
-                      'p-1.5 rounded-xl transition-all duration-200',
-                      isActive ? 'bg-brand-400/10' : ''
+                      'text-xl leading-none transition-transform duration-200',
+                      isActive ? 'scale-110' : 'scale-100'
                     )}
                   >
-                    <Icon
-                      size={22}
-                      strokeWidth={isActive ? 2.2 : 1.8}
-                    />
+                    {emoji}
                   </span>
-                  <span className="text-[10px] font-medium tracking-wide">{label}</span>
+                  <span className={clsx(
+                    'text-[10px] font-medium tracking-wide transition-colors',
+                    isActive ? 'text-brand-600' : 'text-slate-400'
+                  )}>
+                    {label}
+                  </span>
                 </>
               )}
             </NavLink>

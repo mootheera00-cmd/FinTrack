@@ -1,3 +1,53 @@
+// ─── Thai date helpers ────────────────────────────────────────
+
+const THAI_MONTHS_FULL = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน',
+  'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
+  'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+];
+
+const THAI_MONTHS_SHORT = [
+  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.',
+  'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.',
+  'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+];
+
+/** Returns current month key as "YYYY-MM" */
+export function currentMonthKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Format a YYYY-MM month key to Thai, e.g. "มกราคม 2568" */
+export function formatMonthKeyThai(monthKey: string, short = false): string {
+  const [year, month] = monthKey.split('-').map(Number);
+  const months = short ? THAI_MONTHS_SHORT : THAI_MONTHS_FULL;
+  return `${months[month - 1]} ${year + 543}`;
+}
+
+/** Format a YYYY-MM month key to short Thai, e.g. "ม.ค. 68" */
+export function formatMonthKeyThaiShort(monthKey: string): string {
+  const [year, month] = monthKey.split('-').map(Number);
+  return `${THAI_MONTHS_SHORT[month - 1]} ${String(year + 543).slice(-2)}`;
+}
+
+/** Advance a YYYY-MM month key by n months (negative = go back) */
+export function advanceMonthKey(monthKey: string, n: number): string {
+  const [year, month] = monthKey.split('-').map(Number);
+  const d = new Date(year, month - 1 + n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Compare two month keys; returns negative/0/positive */
+export function compareMonthKeys(a: string, b: string): number {
+  return a.localeCompare(b);
+}
+
+/** Get last N months including the given month key (descending) */
+export function lastNMonthKeys(fromKey: string, n: number): string[] {
+  return Array.from({ length: n }, (_, i) => advanceMonthKey(fromKey, -i));
+}
+
 // ─── Currency formatting ──────────────────────────────────────
 
 /**

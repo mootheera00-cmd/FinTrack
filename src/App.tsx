@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard    from '@/pages/Dashboard';
-import Transactions from '@/pages/Transactions';
-import Recurring    from '@/pages/Recurring';
-import Cards        from '@/pages/Cards';
-import Settings     from '@/pages/Settings';
-import AuthPage     from '@/pages/AuthPage';
-import { useAuth }  from '@/hooks/useAuth';
+import IncomePage       from '@/pages/IncomePage';
+import ExpensesPage     from '@/pages/ExpensesPage';
+import InstallmentsPage from '@/pages/InstallmentsPage';
+import SharedPage       from '@/pages/SharedPage';
+import ChartPage        from '@/pages/ChartPage';
+import ForecastPage     from '@/pages/ForecastPage';
+import AuthPage         from '@/pages/AuthPage';
+import { useAuth }      from '@/hooks/useAuth';
 import { DataProvider } from '@/context/DataContext';
 
 function AppRoutes() {
@@ -32,12 +33,13 @@ function AppRoutes() {
   // Logged in → show main app
   return (
     <Routes>
-      <Route path="/"             element={<Dashboard />} />
-      <Route path="/transactions" element={<Transactions />} />
-      <Route path="/recurring"    element={<Recurring />} />
-      <Route path="/cards"        element={<Cards />} />
-      <Route path="/settings"     element={<Settings />} />
-      <Route path="*"             element={<Navigate to="/" replace />} />
+      <Route path="/"            element={<IncomePage />} />
+      <Route path="/expenses"    element={<ExpensesPage />} />
+      <Route path="/installments" element={<InstallmentsPage />} />
+      <Route path="/shared"      element={<SharedPage />} />
+      <Route path="/chart"       element={<ChartPage />} />
+      <Route path="/forecast"    element={<ForecastPage />} />
+      <Route path="*"            element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
