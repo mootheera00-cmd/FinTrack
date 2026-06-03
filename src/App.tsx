@@ -5,6 +5,7 @@ import InstallmentsPage from '@/pages/InstallmentsPage';
 import SharedPage       from '@/pages/SharedPage';
 import ChartPage        from '@/pages/ChartPage';
 import ForecastPage     from '@/pages/ForecastPage';
+import AuthPage         from '@/pages/AuthPage';
 import { DataProvider } from '@/context/DataContext';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/shared"       element={<SharedPage />} />
           <Route path="/chart"        element={<ChartPage />} />
           <Route path="/forecast"     element={<ForecastPage />} />
+          <Route path="/auth"         element={<AuthPage />} />
           <Route path="*"             element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

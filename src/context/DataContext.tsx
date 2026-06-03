@@ -1,4 +1,4 @@
-﻿import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { advanceMonthKey } from '@/lib/utils';
 import type {
@@ -27,6 +27,7 @@ interface DataContextType {
   refetchExpenses: () => Promise<void>;
   refetchInstallments: () => Promise<void>;
   refetchShared: () => Promise<void>;
+  sessionUser: any;
   // Profile
   updateProfile: (patch: Partial<Pick<Profile, 'display_name' | 'currency'>>) => Promise<void>;
   // Income CRUD
@@ -107,7 +108,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [sharedExpenses, setSharedExpenses] = useState<SharedExpense[]>([]);
   const [monthlySummaries, setMonthlySummaries] = useState<MonthlySummary[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sessionUser, setSessionUser] = useState<{ id: string } | null>(null);
+  const [sessionUser, setSessionUser] = useState<any | null>(null);
 
   // Sync auth state — auto sign-in anonymously (single-user mode, no login screen)
   useEffect(() => {
@@ -360,6 +361,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         refetchExpenses,
         refetchInstallments,
         refetchShared,
+        sessionUser,
         updateProfile,
         createIncome,
         deleteIncome,
