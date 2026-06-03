@@ -19,11 +19,15 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [mergeDataOnSignIn, setMergeDataOnSignIn] = useState(true);
 
   const isSignUp = mode === 'signup';
 
   // Check if logged in permanently
   const isPermanentUser = sessionUser && !sessionUser.is_anonymous;
+
+  // Check if there is local data on this anonymous session to merge
+  const hasLocalData = ctx.incomes.length > 0 || ctx.expenses.length > 0 || ctx.installments.length > 0 || ctx.sharedExpenses.length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,9 +49,53 @@ export default function AuthPage() {
         // Redirect after a short delay
         setTimeout(() => navigate('/'), 2000);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        // Sign In & optionally Merge Local Data
+        const localIncomes = [...ctx.incomes];
+        const localExpenses = [...ctx.expenses];
+        const localInstallments = [...ctx.installments];
+        const localShared = [...ctx.sharedExpenses];
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        // Redirect on successful signin
+        
+        if (mergeDataOnSignIn && data.user && hasLocalData) {
+          const newUserId = data.user.id;
+          
+          if (localIncomes.length > 0) {
+            await supabase.from('income').insert(
+              localIncomes.map(({ id, created_at, updated_at, user_id, ...rest }) => ({
+                ...rest,
+                user_id: newUserId
+              }))
+            );
+          }
+          if (localExpenses.length > 0) {
+            await supabase.from('expenses').insert(
+              localExpenses.map(({ id, created_at, updated_at, user_id, ...rest }) => ({
+                ...rest,
+                user_id: newUserId
+              }))
+            );
+          }
+          if (localInstallments.length > 0) {
+            await supabase.from('installments_v2').insert(
+              localInstallments.map(({ id, created_at, updated_at, user_id, ...rest }) => ({
+                ...rest,
+                user_id: newUserId
+              }))
+            );
+          }
+          if (localShared.length > 0) {
+            await supabase.from('shared_expenses').insert(
+              localShared.map(({ id, created_at, updated_at, user_id, ...rest }) => ({
+                ...rest,
+                user_id: newUserId
+              }))
+            );
+          }
+        }
+
+        await ctx.refetchAll();
         navigate('/');
       }
     } catch (err: unknown) {
@@ -287,6 +335,25 @@ export default function AuthPage() {
                     </button>
                   </div>
                 </div>
+
+                {!isSignUp && hasLocalData && (
+                  <label className="flex items-start gap-2.5 px-1 py-1.5 cursor-pointer select-none bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={mergeDataOnSignIn}
+                      onChange={(e) => setMergeDataOnSignIn(e.target.checked)}
+                      className="mt-0.5 rounded border-slate-300 text-brand-500 focus:ring-brand-400/40"
+                    />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-semibold text-slate-700">
+                        ดึงข้อมูลบนเครื่องนี้เข้ากับบัญชีของฉัน
+                      </span>
+                      <span className="text-[10px] text-slate-400 leading-normal">
+                        รวมรายการที่คุณบันทึกไว้ในเครื่องนี้ (Local Data) เข้าไปยังบัญชีคลาวด์ของคุณเพื่อป้องกันข้อมูลสูญหาย
+                      </span>
+                    </div>
+                  </label>
+                )}
 
                 {/* Error message */}
                 {error && (
