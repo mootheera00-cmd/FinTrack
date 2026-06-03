@@ -111,16 +111,37 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   // Sync auth state — auto sign-in anonymously (single-user mode, no login screen)
   useEffect(() => {
+    const RT_KEY = 'fintrack_rt';
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
+        // Active session found — back up the refresh token
+        localStorage.setItem(RT_KEY, session.refresh_token);
         setSessionUser(session.user);
       } else {
-        // No existing session → sign in anonymously (session persists in localStorage)
+        // No active session — try restoring from backed-up refresh token
+        const storedRefreshToken = localStorage.getItem(RT_KEY);
+        if (storedRefreshToken) {
+          const { data: refreshData } = await supabase.auth.refreshSession({ refresh_token: storedRefreshToken });
+          if (refreshData.session) {
+            localStorage.setItem(RT_KEY, refreshData.session.refresh_token);
+            setSessionUser(refreshData.session.user);
+            return;
+          }
+        }
+        // No refresh token or restore failed → sign in anonymously
         const { data } = await supabase.auth.signInAnonymously();
+        if (data.session) {
+          localStorage.setItem(RT_KEY, data.session.refresh_token);
+        }
         setSessionUser(data.user ?? null);
       }
     });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        localStorage.setItem(RT_KEY, session.refresh_token);
+      }
       setSessionUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();

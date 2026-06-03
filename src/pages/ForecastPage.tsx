@@ -3,9 +3,22 @@ import Layout from '@/components/layout/Layout';
 import { useData } from '@/hooks/useData';
 import { formatCurrency, currentMonthKey, advanceMonthKey, formatMonthKeyThai } from '@/lib/utils';
 
+const STORAGE_KEY = 'fintrack_forecast_expected_income';
+
 export default function ForecastPage() {
   const ctx = useData();
-  const [expectedIncome, setExpectedIncome] = useState('');
+  const [expectedIncome, setExpectedIncome] = useState<string>(
+    () => localStorage.getItem(STORAGE_KEY) ?? ''
+  );
+
+  const handleIncomeChange = (value: string) => {
+    setExpectedIncome(value);
+    if (value) {
+      localStorage.setItem(STORAGE_KEY, value);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
 
   const nextMonth = advanceMonthKey(currentMonthKey(), 1);
 
@@ -79,7 +92,7 @@ export default function ForecastPage() {
             className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-400"
             placeholder="0.00"
             value={expectedIncome}
-            onChange={e => setExpectedIncome(e.target.value)}
+            onChange={e => handleIncomeChange(e.target.value)}
           />
         </div>
 

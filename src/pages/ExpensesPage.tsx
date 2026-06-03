@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus, Trash2, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
@@ -23,6 +23,35 @@ export default function ExpensesPage() {
   const [saving, setSaving] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Auto-carry recurring expenses to months that have no data yet
+  const autoCarriedMonths = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (ctx.loading) return;
+    if (autoCarriedMonths.current.has(monthKey)) return;
+
+    const currentMonthExpenses = ctx.expenses.filter(e => e.month_key === monthKey);
+    if (currentMonthExpenses.length > 0) {
+      autoCarriedMonths.current.add(monthKey);
+      return;
+    }
+
+    const prevMonth = advanceMonthKey(monthKey, -1);
+    const recurringFromPrev = ctx.expenses.filter(e => e.month_key === prevMonth && e.is_recurring);
+    if (recurringFromPrev.length === 0) return;
+
+    autoCarriedMonths.current.add(monthKey);
+    void Promise.all(
+      recurringFromPrev.map(exp =>
+        ctx.createExpense({
+          name: exp.name,
+          amount: exp.amount,
+          month_key: monthKey,
+          is_recurring: true,
+        })
+      )
+    );
+  }, [monthKey, ctx.expenses, ctx.loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Autocomplete: unique expense names from history
   const allNames = useMemo(() => {
     return Array.from(new Set(ctx.expenses.map(e => e.name))).sort();
@@ -34,6 +63,8 @@ export default function ExpensesPage() {
   }, [name, allNames]);
 
   const monthExpenses = ctx.expenses.filter(e => e.month_key === monthKey);
+  const recurringMonthExpenses = monthExpenses.filter(e => e.is_recurring);
+  const oneTimeExpenses = monthExpenses.filter(e => !e.is_recurring);
   const total = monthExpenses.reduce((s, e) => s + e.amount, 0);
 
   const openModal = () => {
@@ -76,19 +107,19 @@ export default function ExpensesPage() {
         </div>
 
         {/* Month picker */}
-        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-4 border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between bg-white rounded-2xl px-3 py-2 mb-4 border border-slate-200 shadow-sm">
           <button
             onClick={() => setMonthKey(k => advanceMonthKey(k, -1))}
-            className="p-1 text-slate-500 hover:text-slate-900"
+            className="p-0.5 text-slate-400 hover:text-slate-700"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={16} />
           </button>
           <span className="font-semibold text-slate-900">{formatMonthKeyThai(monthKey)}</span>
           <button
             onClick={() => setMonthKey(k => advanceMonthKey(k, 1))}
-            className="p-1 text-slate-500 hover:text-slate-900"
+            className="p-0.5 text-slate-400 hover:text-slate-700"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={16} />
           </button>
         </div>
 
@@ -112,38 +143,84 @@ export default function ExpensesPage() {
             <p>ยังไม่มีรายจ่ายในเดือนนี้</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {monthExpenses.map(exp => (
-              <Card key={exp.id} className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-slate-900 truncate">{exp.name}</p>
-                    {exp.is_recurring && (
-                      <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0">
-                        <RefreshCw size={10} />
-                        ประจำ
-                      </span>
-                    )}
-                  </div>
+          <div className="space-y-4">
+            {/* Recurring expenses section */}
+            {recurringMonthExpenses.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider flex items-center gap-1">
+                    <RefreshCw size={11} /> รายจ่ายประจำ
+                  </p>
+                  <p className="text-xs font-semibold text-amber-600 tabular-nums">
+                    {formatCurrency(recurringMonthExpenses.reduce((s, e) => s + e.amount, 0))}
+                  </p>
                 </div>
-                <p className="font-bold text-rose-600 tabular-nums shrink-0">
-                  {formatCurrency(exp.amount)}
-                </p>
-                <button
-                  onClick={() => ctx.toggleExpenseRecurring(exp.id, !exp.is_recurring)}
-                  className={`shrink-0 transition-colors ${exp.is_recurring ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400'}`}
-                  title={exp.is_recurring ? 'ยกเลิกรายจ่ายประจำ' : 'ทำเครื่องหมายรายจ่ายประจำ'}
-                >
-                  <RefreshCw size={14} />
-                </button>
-                <button
-                  onClick={() => ctx.deleteExpense(exp.id)}
-                  className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </Card>
-            ))}
+                <div className="space-y-2">
+                  {recurringMonthExpenses.map(exp => (
+                    <Card key={exp.id} className="flex items-center gap-3 border-amber-100 bg-amber-50/40">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">{exp.name}</p>
+                      </div>
+                      <p className="font-bold text-rose-600 tabular-nums shrink-0">
+                        {formatCurrency(exp.amount)}
+                      </p>
+                      <button
+                        onClick={() => ctx.toggleExpenseRecurring(exp.id, false)}
+                        className="shrink-0 text-amber-500 hover:text-slate-400 transition-colors"
+                        title="ยกเลิกรายจ่ายประจำ"
+                      >
+                        <RefreshCw size={14} />
+                      </button>
+                      <button
+                        onClick={() => ctx.deleteExpense(exp.id)}
+                        className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* One-time expenses section */}
+            {oneTimeExpenses.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    รายจ่ายเดือนนี้
+                  </p>
+                  <p className="text-xs font-semibold text-slate-500 tabular-nums">
+                    {formatCurrency(oneTimeExpenses.reduce((s, e) => s + e.amount, 0))}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {oneTimeExpenses.map(exp => (
+                    <Card key={exp.id} className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">{exp.name}</p>
+                      </div>
+                      <p className="font-bold text-rose-600 tabular-nums shrink-0">
+                        {formatCurrency(exp.amount)}
+                      </p>
+                      <button
+                        onClick={() => ctx.toggleExpenseRecurring(exp.id, true)}
+                        className="shrink-0 text-slate-300 hover:text-amber-400 transition-colors"
+                        title="ทำเครื่องหมายรายจ่ายประจำ"
+                      >
+                        <RefreshCw size={14} />
+                      </button>
+                      <button
+                        onClick={() => ctx.deleteExpense(exp.id)}
+                        className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
