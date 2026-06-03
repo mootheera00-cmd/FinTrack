@@ -52,16 +52,19 @@ export default function AuthPage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด';
+      console.error('Auth error:', err);
+      
+      // Translate common Supabase error messages, but fallback to raw message for debugging
       if (msg.includes('Invalid login credentials')) {
-        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง (Invalid login credentials)');
       } else if (msg.includes('Email not confirmed')) {
-        setError('กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ — ตรวจสอบ inbox ของคุณ');
+        setError('กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ — ตรวจสอบ inbox ของคุณ (Email not confirmed)');
       } else if (msg.includes('User already registered')) {
-        setError('อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
+        setError('อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้เมนู "เข้าสู่ระบบ" (User already registered)');
       } else if (msg.includes('Password should be at least')) {
-        setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+        setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร (Weak password)');
       } else if (msg.includes('Unable to validate email')) {
-        setError('รูปแบบอีเมลไม่ถูกต้อง');
+        setError('รูปแบบอีเมลไม่ถูกต้อง (Invalid email format)');
       } else {
         setError(msg);
       }
