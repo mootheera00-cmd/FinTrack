@@ -153,12 +153,6 @@ export default function AuthPage() {
     }
   }
 
-  function switchMode() {
-    setMode(isSignUp ? 'signin' : 'signup');
-    setError('');
-    setSuccessMsg('');
-  }
-
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Top gradient decoration */}
