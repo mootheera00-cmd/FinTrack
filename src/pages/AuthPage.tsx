@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useData } from '@/hooks/useData';
 import { useNavigate } from 'react-router-dom';
 
-type Mode = 'signin' | 'signup';
+type Mode = 'signin' | 'signup' | 'forgot';
 
 export default function AuthPage() {
   const ctx = useData();
@@ -20,6 +20,8 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [mergeDataOnSignIn, setMergeDataOnSignIn] = useState(true);
+
+  const isForgot = mode === 'forgot';
 
   const isSignUp = mode === 'signup';
 
@@ -101,21 +103,38 @@ export default function AuthPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด';
       console.error('Auth error:', err);
-      
-      // Translate common Supabase error messages, but fallback to raw message for debugging
       if (msg.includes('Invalid login credentials')) {
-        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง (Invalid login credentials)');
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง\n\n💡 หากเพิ่งสมัครใหม่ อาจต้องยืนยันอีเมลก่อน ลองกด "ลืมรหัสผ่าน" เพื่อตั้งรหัสผ่านใหม่ผ่าน inbox ของคุณ');
       } else if (msg.includes('Email not confirmed')) {
-        setError('กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ — ตรวจสอบ inbox ของคุณ (Email not confirmed)');
+        setError('กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ — ตรวจสอบ inbox ของคุณ');
       } else if (msg.includes('User already registered')) {
-        setError('อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้เมนู "เข้าสู่ระบบ" (User already registered)');
+        setError('อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้เมนู "เข้าสู่ระบบ"');
       } else if (msg.includes('Password should be at least')) {
-        setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร (Weak password)');
+        setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
       } else if (msg.includes('Unable to validate email')) {
-        setError('รูปแบบอีเมลไม่ถูกต้อง (Invalid email format)');
+        setError('รูปแบบอีเมลไม่ถูกต้อง');
       } else {
         setError(msg);
       }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSuccessMsg('');
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/auth',
+      });
+      if (error) throw error;
+      setSuccessMsg('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปยัง ' + email + ' แล้ว — ตรวจสอบ inbox ของคุณ');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาด';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -235,7 +254,7 @@ export default function AuthPage() {
                   type="button"
                   onClick={() => setMode('signin')}
                   className={`flex-1 py-4 text-sm font-semibold transition-colors ${
-                    !isSignUp
+                    !isSignUp && !isForgot
                       ? 'text-brand-500 border-b-2 border-brand-500 bg-amber-50/50'
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
@@ -251,11 +270,75 @@ export default function AuthPage() {
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  สมัครสมาชิก (ซิงค์ข้อมูล)
+                  สมัครสมาชิก
                 </button>
               </div>
 
               {/* Form */}
+              {isForgot ? (
+                /* Forgot Password Form */
+                <form onSubmit={handleForgotPassword} className="p-6 flex flex-col gap-4">
+                  <div className="text-center">
+                    <p className="text-3xl mb-2">🔑</p>
+                    <h2 className="font-bold text-slate-900 text-base mb-1">ลืมรหัสผ่าน?</h2>
+                    <p className="text-xs text-slate-500 leading-relaxed">กรอกอีเมลที่ใช้สมัครสมาชิก แล้วเราจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้</p>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">อีเมล</label>
+                    <div className="relative">
+                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="email"
+                        placeholder="email@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        autoComplete="email"
+                        inputMode="email"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="flex items-start gap-2 px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm">
+                      <span className="mt-0.5">⚠️</span>
+                      <span>{error}</span>
+                    </div>
+                  )}
+                  {successMsg && (
+                    <div className="flex items-start gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+                      <span className="mt-0.5">✅</span>
+                      <span>{successMsg}</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-semibold text-sm transition-all disabled:opacity-60 shadow-sm"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        กำลังส่ง...
+                      </span>
+                    ) : 'ส่งลิงก์รีเซ็ตรหัสผ่าน'}
+                  </button>
+
+                  <p className="text-center text-sm text-slate-500">
+                    <button
+                      type="button"
+                      onClick={() => { setMode('signin'); setError(''); setSuccessMsg(''); }}
+                      className="font-semibold text-brand-500 hover:text-brand-600 transition-colors"
+                    >
+                      ← กลับไปเข้าสู่ระบบ
+                    </button>
+                  </p>
+                </form>
+              ) : (
+              /* Sign In / Sign Up Form */
               <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
                 {isSignUp && (
                   /* Upgrading / Syncing explanation card */
@@ -271,9 +354,7 @@ export default function AuthPage() {
                 {/* Display name (signup only) */}
                 {isSignUp && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                      ชื่อที่แสดง
-                    </label>
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ชื่อที่แสดง</label>
                     <div className="relative">
                       <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
@@ -290,9 +371,7 @@ export default function AuthPage() {
 
                 {/* Email */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    อีเมล
-                  </label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">อีเมล</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
@@ -310,9 +389,18 @@ export default function AuthPage() {
 
                 {/* Password */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    รหัสผ่าน
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">รหัสผ่าน</label>
+                    {!isSignUp && (
+                      <button
+                        type="button"
+                        onClick={() => { setMode('forgot'); setError(''); setSuccessMsg(''); }}
+                        className="text-xs text-brand-500 hover:text-brand-600 font-medium transition-colors"
+                      >
+                        ลืมรหัสผ่าน?
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
@@ -337,7 +425,7 @@ export default function AuthPage() {
                 </div>
 
                 {!isSignUp && hasLocalData && (
-                  <label className="flex items-start gap-2.5 px-1 py-1.5 cursor-pointer select-none bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-left">
+                  <label className="flex items-start gap-2.5 px-3 py-3 cursor-pointer select-none bg-slate-50 border border-slate-200/80 rounded-xl text-left">
                     <input
                       type="checkbox"
                       checked={mergeDataOnSignIn}
@@ -345,12 +433,8 @@ export default function AuthPage() {
                       className="mt-0.5 rounded border-slate-300 text-brand-500 focus:ring-brand-400/40"
                     />
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-slate-700">
-                        ดึงข้อมูลบนเครื่องนี้เข้ากับบัญชีของฉัน
-                      </span>
-                      <span className="text-[10px] text-slate-400 leading-normal">
-                        รวมรายการที่คุณบันทึกไว้ในเครื่องนี้ (Local Data) เข้าไปยังบัญชีคลาวด์ของคุณเพื่อป้องกันข้อมูลสูญหาย
-                      </span>
+                      <span className="text-xs font-semibold text-slate-700">ดึงข้อมูลบนเครื่องนี้เข้ากับบัญชีของฉัน</span>
+                      <span className="text-[10px] text-slate-400 leading-normal">รวมรายการที่คุณบันทึกไว้ในเครื่องนี้เข้าไปยังบัญชีคลาวด์เพื่อป้องกันข้อมูลสูญหาย</span>
                     </div>
                   </label>
                 )}
@@ -358,8 +442,8 @@ export default function AuthPage() {
                 {/* Error message */}
                 {error && (
                   <div className="flex items-start gap-2 px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm">
-                    <span className="mt-0.5">⚠️</span>
-                    <span>{error}</span>
+                    <span className="mt-0.5 shrink-0">⚠️</span>
+                    <span className="whitespace-pre-line">{error}</span>
                   </div>
                 )}
 
@@ -392,13 +476,14 @@ export default function AuthPage() {
                   {isSignUp ? 'มีบัญชีอยู่แล้ว?' : 'ยังไม่มีบัญชี?'}{' '}
                   <button
                     type="button"
-                    onClick={switchMode}
+                    onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(''); setSuccessMsg(''); }}
                     className="font-semibold text-brand-500 hover:text-brand-600 transition-colors"
                   >
                     {isSignUp ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
                   </button>
                 </p>
               </form>
+              )}
             </>
           )}
         </div>
