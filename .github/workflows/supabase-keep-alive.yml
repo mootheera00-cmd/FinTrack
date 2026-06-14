@@ -1,0 +1,48 @@
+# =============================================================
+# FinTrack - Supabase Keep-Alive Workflow
+#
+# Prevents the free-tier Supabase project from being
+# automatically paused after 7 days of inactivity.
+#
+# Behavior:
+#   - Runs every 2 days via cron
+#   - Can also be triggered manually via GitHub UI
+#   - Sends 3 lightweight pings to the Supabase project
+#
+# Setup:
+#   1. Go to GitHub repo → Settings → Secrets and variables → Actions
+#   2. Add the following repository secrets:
+#      - SUPABASE_URL       (from .env VITE_SUPABASE_URL)
+#      - SUPABASE_ANON_KEY  (from .env VITE_SUPABASE_ANON_KEY)
+# =============================================================
+
+name: Supabase Keep-Alive
+
+on:
+  # ─── Scheduled: every 2 days at 06:00 UTC ─────────────────
+  schedule:
+    - cron: '0 6 */2 * *'
+
+  # ─── Manual trigger via GitHub Actions UI ─────────────────
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    name: Ping Supabase Project
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x scripts/supabase-keep-alive.sh
+
+      - name: Run keep-alive script
+        run: bash scripts/supabase-keep-alive.sh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Log completion timestamp
+        run: echo "Keep-alive completed at $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
