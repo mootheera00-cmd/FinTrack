@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { advanceMonthKey } from '@/lib/utils';
 import type {
@@ -122,7 +122,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return uid!;
   }, []);
   const localUserId = getLocalUserId();
-  const isLocalModeRef = useRef(true);
 
   // Fetch all data on mount
   useEffect(() => {
@@ -182,16 +181,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [incomes, expenses, installments, sharedExpenses]);
 
   // ─── Mutations ────────────────────────────────────────────────
-
-  const updateProfile = async (patch: Partial<Pick<Profile, 'display_name' | 'currency'>>) => {
-    const { error } = await supabase.rpc('update_profile', {
-      p_id: localUserId,
-      p_display_name: patch.display_name ?? null,
-      p_currency: patch.currency ?? null,
-    });
-    if (error) throw new Error(error.message);
-    setProfile(prev => prev ? { ...prev, ...patch } : prev);
-  };
 
   const createIncome = async (input: IncomeInput) => {
     const { data, error } = await supabase.rpc('create_income', {
@@ -361,8 +350,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         monthlySummaries,
         loading,
         refetchAll,
-        refetchShared,
-        updateProfile,
         createIncome,
         deleteIncome,
         createExpense,
@@ -375,17 +362,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         deleteSharedExpense,
         toggleSharedInclude,
         exportCSV,
-        createIncome,
-        deleteIncome,
-        createExpense,
-        deleteExpense,
-        toggleExpenseRecurring,
-        createInstallment,
-        deleteInstallment,
-        markInstallmentPaid,
-        createSharedExpense,
-        deleteSharedExpense,
-        toggleSharedInclude,
       }}
     >
       {children}
