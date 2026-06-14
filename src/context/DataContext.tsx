@@ -23,10 +23,6 @@ interface DataContextType {
   monthlySummaries: MonthlySummary[];
   loading: boolean;
   refetchAll: () => Promise<void>;
-  refetchIncomes: () => Promise<void>;
-  refetchExpenses: () => Promise<void>;
-  refetchInstallments: () => Promise<void>;
-  refetchShared: () => Promise<void>;
   // Income CRUD
   createIncome: (input: IncomeInput) => Promise<Income>;
   deleteIncome: (id: string) => Promise<void>;
