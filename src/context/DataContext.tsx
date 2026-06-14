@@ -27,10 +27,6 @@ interface DataContextType {
   refetchExpenses: () => Promise<void>;
   refetchInstallments: () => Promise<void>;
   refetchShared: () => Promise<void>;
-  sessionUser: any;
-  isLocalMode: boolean;
-  // Profile
-  updateProfile: (patch: Partial<Pick<Profile, 'display_name' | 'currency'>>) => Promise<void>;
   // Income CRUD
   createIncome: (input: IncomeInput) => Promise<Income>;
   deleteIncome: (id: string) => Promise<void>;
@@ -46,6 +42,8 @@ interface DataContextType {
   createSharedExpense: (input: SharedExpenseInput) => Promise<SharedExpense>;
   deleteSharedExpense: (id: string) => Promise<void>;
   toggleSharedInclude: (id: string, include: boolean) => Promise<void>;
+  // CSV Export
+  exportCSV: () => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -109,19 +107,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [sharedExpenses, setSharedExpenses] = useState<SharedExpense[]>([]);
   const [monthlySummaries, setMonthlySummaries] = useState<MonthlySummary[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sessionUser, setSessionUser] = useState<any | null>(null);
 
-  const isLocalModeRef = useRef(false);
-  const localUserIdRef = useRef<string | null>(null);
-
-  const [isLocalMode, setIsLocalMode] = useState(false);
-
-  // Get or create a local user ID stored in localStorage (fallback when anonymous auth unavailable)
+  // Single static local user ID — no login needed
+  const LOCAL_UID_KEY = 'fintrack_local_uid';
   const getLocalUserId = useCallback((): string => {
-    const LOCAL_UID_KEY = 'fintrack_local_uid';
     let uid = localStorage.getItem(LOCAL_UID_KEY);
     if (!uid) {
-      // Generate a UUID v4
       uid = crypto.randomUUID?.() ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0;
         return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
@@ -130,154 +121,45 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
     return uid!;
   }, []);
+  const localUserId = getLocalUserId();
+  const isLocalModeRef = useRef(true);
 
-  // Sync auth state — auto sign-in anonymously (single-user mode, no login screen)
+  // Fetch all data on mount
   useEffect(() => {
-    const RT_KEY = 'fintrack_rt';
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (cancelled) return;
-        if (session) {
-          localStorage.setItem(RT_KEY, session.refresh_token);
-          setSessionUser(session.user);
-          return;
-        }
-
-        // Try restoring from backed-up refresh token
-        const storedRefreshToken = localStorage.getItem(RT_KEY);
-        if (storedRefreshToken) {
-          const { data: refreshData } = await supabase.auth.refreshSession({ refresh_token: storedRefreshToken });
-          if (!cancelled && refreshData.session) {
-            localStorage.setItem(RT_KEY, refreshData.session.refresh_token);
-            setSessionUser(refreshData.session.user);
-            return;
-          }
-        }
-
-        // Try anonymous sign-in
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (cancelled) return;
-        if (error) {
-          // Anonymous provider disabled — fall back to local mode
-          console.warn('Anonymous auth unavailable, using local mode:', error.message);
-          const localUid = getLocalUserId();
-          localUserIdRef.current = localUid;
-          isLocalModeRef.current = true;
-          setIsLocalMode(true);
-          // Create a fake user object
-          setSessionUser({ id: localUid, is_anonymous: true });
-          return;
-        }
-        if (data.session) {
-          localStorage.setItem(RT_KEY, data.session.refresh_token);
-        }
-        setSessionUser(data.user ?? null);
-      } catch (err) {
-        if (cancelled) return;
-        console.warn('Auth error, using local mode:', err);
-        const localUid = getLocalUserId();
-        localUserIdRef.current = localUid;
-        isLocalModeRef.current = true;
-        setIsLocalMode(true);
-        setSessionUser({ id: localUid, is_anonymous: true });
-      }
-    })();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        localStorage.setItem(RT_KEY, session.refresh_token);
-        isLocalModeRef.current = false;
-        setIsLocalMode(false);
-      }
-      setSessionUser(session?.user ?? null);
+    // Ensure profile exists via RPC
+    supabase.rpc('get_or_create_profile', { p_id: localUserId }).then(({ data }) => {
+      if (data && data.length > 0) setProfile(data[0] as Profile);
     });
-
-    return () => {
-      cancelled = true;
-      subscription.unsubscribe();
-    };
-  }, [getLocalUserId]);
+    void refetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refetchProfile = useCallback(async () => {
-    if (!sessionUser) return;
-    if (isLocalModeRef.current) {
-      const { data } = await supabase.rpc('get_or_create_profile', { p_id: sessionUser.id });
-      if (data && data.length > 0) setProfile(data[0] as Profile);
-      return;
-    }
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', sessionUser.id)
-      .maybeSingle();
-    if (data) setProfile(data as Profile);
-  }, [sessionUser]);
+    const { data } = await supabase.rpc('get_or_create_profile', { p_id: localUserId });
+    if (data && data.length > 0) setProfile(data[0] as Profile);
+  }, [localUserId]);
 
   const refetchIncomes = useCallback(async () => {
-    if (!sessionUser) return;
-    if (isLocalModeRef.current) {
-      const { data } = await supabase.rpc('get_incomes', { p_user_id: sessionUser.id });
-      if (data) setIncomes(data as Income[]);
-      return;
-    }
-    const { data } = await supabase
-      .from('income')
-      .select('*')
-      .eq('user_id', sessionUser.id)
-      .order('month_key', { ascending: false });
+    const { data } = await supabase.rpc('get_incomes', { p_user_id: localUserId });
     if (data) setIncomes(data as Income[]);
-  }, [sessionUser]);
+  }, [localUserId]);
 
   const refetchExpenses = useCallback(async () => {
-    if (!sessionUser) return;
-    if (isLocalModeRef.current) {
-      const { data } = await supabase.rpc('get_expenses', { p_user_id: sessionUser.id });
-      if (data) setExpenses(data as Expense[]);
-      return;
-    }
-    const { data } = await supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', sessionUser.id)
-      .order('month_key', { ascending: false });
+    const { data } = await supabase.rpc('get_expenses', { p_user_id: localUserId });
     if (data) setExpenses(data as Expense[]);
-  }, [sessionUser]);
+  }, [localUserId]);
 
   const refetchInstallments = useCallback(async () => {
-    if (!sessionUser) return;
-    if (isLocalModeRef.current) {
-      const { data } = await supabase.rpc('get_installments', { p_user_id: sessionUser.id });
-      if (data) setInstallments(data as Installment[]);
-      return;
-    }
-    const { data } = await supabase
-      .from('installments_v2')
-      .select('*')
-      .eq('user_id', sessionUser.id)
-      .order('start_month', { ascending: false });
+    const { data } = await supabase.rpc('get_installments', { p_user_id: localUserId });
     if (data) setInstallments(data as Installment[]);
-  }, [sessionUser]);
+  }, [localUserId]);
 
   const refetchShared = useCallback(async () => {
-    if (!sessionUser) return;
-    if (isLocalModeRef.current) {
-      const { data } = await supabase.rpc('get_shared_expenses', { p_user_id: sessionUser.id });
-      if (data) setSharedExpenses(data as SharedExpense[]);
-      return;
-    }
-    const { data } = await supabase
-      .from('shared_expenses')
-      .select('*')
-      .eq('user_id', sessionUser.id)
-      .order('month_key', { ascending: false });
+    const { data } = await supabase.rpc('get_shared_expenses', { p_user_id: localUserId });
     if (data) setSharedExpenses(data as SharedExpense[]);
-  }, [sessionUser]);
+  }, [localUserId]);
 
   const refetchAll = useCallback(async () => {
-    if (!sessionUser) return;
     setLoading(true);
     await Promise.all([
       refetchProfile(),
@@ -287,20 +169,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       refetchShared(),
     ]);
     setLoading(false);
-  }, [sessionUser, refetchProfile, refetchIncomes, refetchExpenses, refetchInstallments, refetchShared]);
+  }, [refetchProfile, refetchIncomes, refetchExpenses, refetchInstallments, refetchShared]);
 
+  // Fetch on mount
   useEffect(() => {
-    if (sessionUser) {
-      void refetchAll();
-    } else {
-      setProfile(null);
-      setIncomes([]);
-      setExpenses([]);
-      setInstallments([]);
-      setSharedExpenses([]);
-      setMonthlySummaries([]);
-    }
-  }, [sessionUser, refetchAll]);
+    void refetchAll();
+  }, [refetchAll]);
 
   // Recompute summaries whenever source data changes
   useEffect(() => {
@@ -310,154 +184,85 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // ─── Mutations ────────────────────────────────────────────────
 
   const updateProfile = async (patch: Partial<Pick<Profile, 'display_name' | 'currency'>>) => {
-    if (!sessionUser) throw new Error('Not authenticated');
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('update_profile', {
-        p_id: sessionUser.id,
-        p_display_name: patch.display_name ?? null,
-        p_currency: patch.currency ?? null,
-      });
-      if (error) throw new Error(error.message);
-      setProfile(prev => prev ? { ...prev, ...patch } : prev);
-      return;
-    }
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(patch)
-      .eq('id', sessionUser.id)
-      .select()
-      .single();
+    const { error } = await supabase.rpc('update_profile', {
+      p_id: localUserId,
+      p_display_name: patch.display_name ?? null,
+      p_currency: patch.currency ?? null,
+    });
     if (error) throw new Error(error.message);
-    setProfile(data as Profile);
+    setProfile(prev => prev ? { ...prev, ...patch } : prev);
   };
 
   const createIncome = async (input: IncomeInput) => {
-    if (!sessionUser) throw new Error('Not authenticated');
-    if (isLocalModeRef.current) {
-      const { data, error } = await supabase.rpc('create_income', {
-        p_user_id: sessionUser.id,
-        p_name: input.name,
-        p_amount: input.amount,
-        p_month_key: input.month_key,
-      });
-      if (error) throw new Error(error.message);
-      if (data && data.length > 0) {
-        setIncomes(prev => [data[0] as Income, ...prev]);
-        return data[0] as Income;
-      }
-      throw new Error('Failed to create income');
-    }
-    const { data, error } = await supabase
-      .from('income')
-      .insert({ ...input, user_id: sessionUser.id })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_income', {
+      p_user_id: localUserId,
+      p_name: input.name,
+      p_amount: input.amount,
+      p_month_key: input.month_key,
+    });
     if (error) throw new Error(error.message);
-    setIncomes(prev => [data as Income, ...prev]);
-    return data as Income;
+    if (data && data.length > 0) {
+      setIncomes(prev => [data[0] as Income, ...prev]);
+      return data[0] as Income;
+    }
+    throw new Error('Failed to create income');
   };
 
   const deleteIncome = async (id: string) => {
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('delete_income', { p_id: id, p_user_id: sessionUser!.id });
-      if (error) throw new Error(error.message);
-      setIncomes(prev => prev.filter(i => i.id !== id));
-      return;
-    }
-    const { error } = await supabase.from('income').delete().eq('id', id);
+    const { error } = await supabase.rpc('delete_income', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
     setIncomes(prev => prev.filter(i => i.id !== id));
   };
 
   const createExpense = async (input: ExpenseInput) => {
-    if (!sessionUser) throw new Error('Not authenticated');
-    if (isLocalModeRef.current) {
-      const { data, error } = await supabase.rpc('create_expense', {
-        p_user_id: sessionUser.id,
-        p_name: input.name,
-        p_amount: input.amount,
-        p_month_key: input.month_key,
-        p_is_recurring: input.is_recurring,
-      });
-      if (error) throw new Error(error.message);
-      if (data && data.length > 0) {
-        setExpenses(prev => [data[0] as Expense, ...prev]);
-        return data[0] as Expense;
-      }
-      throw new Error('Failed to create expense');
-    }
-    const { data, error } = await supabase
-      .from('expenses')
-      .insert({ ...input, user_id: sessionUser.id })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_expense', {
+      p_user_id: localUserId,
+      p_name: input.name,
+      p_amount: input.amount,
+      p_month_key: input.month_key,
+      p_is_recurring: input.is_recurring,
+    });
     if (error) throw new Error(error.message);
-    setExpenses(prev => [data as Expense, ...prev]);
-    return data as Expense;
+    if (data && data.length > 0) {
+      setExpenses(prev => [data[0] as Expense, ...prev]);
+      return data[0] as Expense;
+    }
+    throw new Error('Failed to create expense');
   };
 
   const deleteExpense = async (id: string) => {
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('delete_expense', { p_id: id, p_user_id: sessionUser!.id });
-      if (error) throw new Error(error.message);
-      setExpenses(prev => prev.filter(e => e.id !== id));
-      return;
-    }
-    const { error } = await supabase.from('expenses').delete().eq('id', id);
+    const { error } = await supabase.rpc('delete_expense', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
     setExpenses(prev => prev.filter(e => e.id !== id));
   };
 
   const toggleExpenseRecurring = async (id: string, is_recurring: boolean) => {
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('toggle_expense_recurring', {
-        p_id: id, p_user_id: sessionUser!.id, p_is_recurring: is_recurring,
-      });
-      if (error) throw new Error(error.message);
-      setExpenses(prev => prev.map(e => e.id === id ? { ...e, is_recurring } : e));
-      return;
-    }
-    const { error } = await supabase.from('expenses').update({ is_recurring }).eq('id', id);
+    const { error } = await supabase.rpc('toggle_expense_recurring', {
+      p_id: id, p_user_id: localUserId, p_is_recurring: is_recurring,
+    });
     if (error) throw new Error(error.message);
     setExpenses(prev => prev.map(e => e.id === id ? { ...e, is_recurring } : e));
   };
 
   const createInstallment = async (input: InstallmentInput) => {
-    if (!sessionUser) throw new Error('Not authenticated');
-    if (isLocalModeRef.current) {
-      const { data, error } = await supabase.rpc('create_installment', {
-        p_user_id: sessionUser.id,
-        p_description: input.description,
-        p_total_price: input.total_price,
-        p_total_months: input.total_months,
-        p_monthly_amount: input.monthly_amount,
-        p_start_month: input.start_month,
-      });
-      if (error) throw new Error(error.message);
-      if (data && data.length > 0) {
-        setInstallments(prev => [data[0] as Installment, ...prev]);
-        return data[0] as Installment;
-      }
-      throw new Error('Failed to create installment');
-    }
-    const { data, error } = await supabase
-      .from('installments_v2')
-      .insert({ ...input, user_id: sessionUser.id })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_installment', {
+      p_user_id: localUserId,
+      p_description: input.description,
+      p_total_price: input.total_price,
+      p_total_months: input.total_months,
+      p_monthly_amount: input.monthly_amount,
+      p_start_month: input.start_month,
+    });
     if (error) throw new Error(error.message);
-    setInstallments(prev => [data as Installment, ...prev]);
-    return data as Installment;
+    if (data && data.length > 0) {
+      setInstallments(prev => [data[0] as Installment, ...prev]);
+      return data[0] as Installment;
+    }
+    throw new Error('Failed to create installment');
   };
 
   const deleteInstallment = async (id: string) => {
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('delete_installment', { p_id: id, p_user_id: sessionUser!.id });
-      if (error) throw new Error(error.message);
-      setInstallments(prev => prev.filter(i => i.id !== id));
-      return;
-    }
-    const { error } = await supabase.from('installments_v2').delete().eq('id', id);
+    const { error } = await supabase.rpc('delete_installment', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
     setInstallments(prev => prev.filter(i => i.id !== id));
   };
@@ -466,82 +271,84 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const current = installments.find(i => i.id === id);
     if (!current) return;
     const newPaid = current.paid_months + 1;
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('mark_installment_paid', { p_id: id, p_user_id: sessionUser!.id });
-      if (error) throw new Error(error.message);
-      setInstallments(prev => prev.map(i => i.id === id ? { ...i, paid_months: newPaid } : i));
-      return;
-    }
-    const { data, error } = await supabase
-      .from('installments_v2')
-      .update({ paid_months: newPaid })
-      .eq('id', id)
-      .select()
-      .single();
+    const { error } = await supabase.rpc('mark_installment_paid', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
-    setInstallments(prev => prev.map(i => i.id === id ? (data as Installment) : i));
+    setInstallments(prev => prev.map(i => i.id === id ? { ...i, paid_months: newPaid } : i));
   };
 
   const createSharedExpense = async (input: SharedExpenseInput) => {
-    if (!sessionUser) throw new Error('Not authenticated');
-    if (isLocalModeRef.current) {
-      const { data, error } = await supabase.rpc('create_shared_expense', {
-        p_user_id: sessionUser.id,
-        p_description: input.description,
-        p_total_amount: input.total_amount,
-        p_split_count: input.split_count,
-        p_my_share: input.my_share,
-        p_month_key: input.month_key,
-      });
-      if (error) throw new Error(error.message);
-      if (data && data.length > 0) {
-        setSharedExpenses(prev => [data[0] as SharedExpense, ...prev]);
-        return data[0] as SharedExpense;
-      }
-      throw new Error('Failed to create shared expense');
-    }
-    const { data, error } = await supabase
-      .from('shared_expenses')
-      .insert({ ...input, user_id: sessionUser.id })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_shared_expense', {
+      p_user_id: localUserId,
+      p_description: input.description,
+      p_total_amount: input.total_amount,
+      p_split_count: input.split_count,
+      p_my_share: input.my_share,
+      p_month_key: input.month_key,
+    });
     if (error) throw new Error(error.message);
-    setSharedExpenses(prev => [data as SharedExpense, ...prev]);
-    return data as SharedExpense;
+    if (data && data.length > 0) {
+      setSharedExpenses(prev => [data[0] as SharedExpense, ...prev]);
+      return data[0] as SharedExpense;
+    }
+    throw new Error('Failed to create shared expense');
   };
 
   const deleteSharedExpense = async (id: string) => {
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('delete_shared_expense', { p_id: id, p_user_id: sessionUser!.id });
-      if (error) throw new Error(error.message);
-      setSharedExpenses(prev => prev.filter(s => s.id !== id));
-      return;
-    }
-    const { error } = await supabase.from('shared_expenses').delete().eq('id', id);
+    const { error } = await supabase.rpc('delete_shared_expense', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
     setSharedExpenses(prev => prev.filter(s => s.id !== id));
   };
 
   const toggleSharedInclude = async (id: string, include: boolean) => {
-    if (isLocalModeRef.current) {
-      const { error } = await supabase.rpc('toggle_shared_include', {
-        p_id: id, p_user_id: sessionUser!.id, p_include: include,
-      });
-      if (error) throw new Error(error.message);
-      setSharedExpenses(prev =>
-        prev.map(s => s.id === id ? { ...s, include_in_expenses: include } : s)
-      );
-      return;
-    }
-    const { error } = await supabase
-      .from('shared_expenses')
-      .update({ include_in_expenses: include })
-      .eq('id', id);
+    const { error } = await supabase.rpc('toggle_shared_include', {
+      p_id: id, p_user_id: localUserId, p_include: include,
+    });
     if (error) throw new Error(error.message);
     setSharedExpenses(prev =>
       prev.map(s => s.id === id ? { ...s, include_in_expenses: include } : s)
     );
   };
+
+  // ─── CSV Export ──────────────────────────────────────────
+  const exportCSV = useCallback(() => {
+    const escCsv = (val: unknown): string => {
+      const s = String(val ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? '"' + s.replace(/"/g, '""') + '"'
+        : s;
+    };
+
+    const rows: string[] = [];
+
+    // Incomes
+    rows.push('=== รายรับ (Income) ===');
+    rows.push('ชื่อ,จำนวนเงิน,เดือน');
+    incomes.forEach(i => rows.push([escCsv(i.name), i.amount, i.month_key].join(',')));
+
+    rows.push('');
+    rows.push('=== รายจ่าย (Expenses) ===');
+    rows.push('ชื่อ,จำนวนเงิน,เดือน,รายการประจำ');
+    expenses.forEach(e => rows.push([escCsv(e.name), e.amount, e.month_key, e.is_recurring ? 'ใช่' : 'ไม่'].join(',')));
+
+    rows.push('');
+    rows.push('=== ผ่อนชำระ (Installments) ===');
+    rows.push('รายละเอียด,ราคารวม,จำนวนงวด,งวดละ,เดือนเริ่ม,จ่ายแล้ว');
+    installments.forEach(i => rows.push([escCsv(i.description), i.total_price, i.total_months, i.monthly_amount, i.start_month, i.paid_months].join(',')));
+
+    rows.push('');
+    rows.push('=== ซื้อร่วม (Shared Expenses) ===');
+    rows.push('รายละเอียด,ยอดรวม,จำนวนคน,ส่วนแบ่งเรา,เดือน,นับรวมรายจ่าย');
+    sharedExpenses.forEach(s => rows.push([escCsv(s.description), s.total_amount, s.split_count, s.my_share, s.month_key, s.include_in_expenses ? 'ใช่' : 'ไม่'].join(',')));
+
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fintrack-backup-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [incomes, expenses, installments, sharedExpenses]);
 
   return (
     <DataContext.Provider
@@ -554,13 +361,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         monthlySummaries,
         loading,
         refetchAll,
-        refetchIncomes,
-        refetchExpenses,
-        refetchInstallments,
         refetchShared,
-        sessionUser,
-        isLocalMode,
         updateProfile,
+        createIncome,
+        deleteIncome,
+        createExpense,
+        deleteExpense,
+        toggleExpenseRecurring,
+        createInstallment,
+        deleteInstallment,
+        markInstallmentPaid,
+        createSharedExpense,
+        deleteSharedExpense,
+        toggleSharedInclude,
+        exportCSV,
         createIncome,
         deleteIncome,
         createExpense,
