@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Users, Check } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';

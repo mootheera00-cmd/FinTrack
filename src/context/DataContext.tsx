@@ -202,31 +202,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [localUserId]);
 
-  const refetchProfile = useCallback(async () => {
-    const { data } = await supabase.rpc('get_or_create_profile', { p_id: localUserId });
-    if (data && data.length > 0) setProfile(data[0] as Profile);
-  }, [localUserId]);
-
-  const refetchIncomes = useCallback(async () => {
-    const { data } = await supabase.rpc('get_incomes', { p_user_id: localUserId });
-    if (data) setIncomes(data as Income[]);
-  }, [localUserId]);
-
-  const refetchExpenses = useCallback(async () => {
-    const { data } = await supabase.rpc('get_expenses', { p_user_id: localUserId });
-    if (data) setExpenses(data as Expense[]);
-  }, [localUserId]);
-
-  const refetchInstallments = useCallback(async () => {
-    const { data } = await supabase.rpc('get_installments', { p_user_id: localUserId });
-    if (data) setInstallments(data as Installment[]);
-  }, [localUserId]);
-
-  const refetchShared = useCallback(async () => {
-    const { data } = await supabase.rpc('get_shared_expenses', { p_user_id: localUserId });
-    if (data) setSharedExpenses(data as SharedExpense[]);
-  }, [localUserId]);
-
   const refetchAll = useCallback(async () => {
     await syncFromSupabase();
   }, [syncFromSupabase]);
