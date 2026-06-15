@@ -10,11 +10,11 @@ interface BadgeProps {
 }
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  income:  'bg-green-50   text-green-700  border-green-200',
-  expense: 'bg-rose-50    text-rose-600   border-rose-200',
-  info:    'bg-blue-50    text-blue-600   border-blue-200',
-  warning: 'bg-amber-50   text-amber-600  border-amber-200',
-  neutral: 'bg-slate-100  text-slate-600  border-slate-200',
+  income:  'bg-neutral-100  text-neutral-700  border-neutral-300',
+  expense: 'bg-neutral-100  text-neutral-600  border-neutral-300',
+  info:    'bg-neutral-50   text-neutral-600  border-neutral-200',
+  warning: 'bg-neutral-100  text-neutral-600  border-neutral-300',
+  neutral: 'bg-neutral-100  text-neutral-600  border-neutral-200',
 };
 
 export function Badge({ variant = 'neutral', children, className }: BadgeProps) {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Search, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight, Download } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight, Download, History, TrendingUp, TrendingDown, Inbox } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Card } from '@/components/ui/Card';
 import { useData } from '@/hooks/useData';
@@ -74,17 +74,17 @@ export default function ChartPage() {
       <div className="px-4 pt-6 pb-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900">📜 ประวัติทั้งหมด</h1>
+          <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2"><History size={20} className="text-neutral-500" /> ประวัติทั้งหมด</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => ctx.exportCSV()}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border active:scale-95 shadow-sm bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border active:scale-95 shadow-sm bg-neutral-100 border-neutral-200 text-neutral-700 hover:bg-neutral-200 hover:border-neutral-300"
               title="ส่งออกข้อมูลทั้งหมดเพื่อสำรอง"
             >
-              <Download size={12} className="text-emerald-500" />
+              <Download size={12} className="text-neutral-500" />
               <span>ส่งออก CSV</span>
             </button>
-            <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full font-medium">
+            <span className="text-xs text-neutral-400 bg-neutral-100 px-3 py-1 rounded-full font-medium">
               {monthGroups.reduce((s, g) => s + g.income.length + g.expenses.length, 0)} รายการ
             </span>
           </div>
@@ -92,9 +92,9 @@ export default function ChartPage() {
 
         {/* Search */}
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input
-            className="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
+            className="w-full border border-neutral-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 bg-white"
             placeholder="ค้นหารายการ..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -104,11 +104,11 @@ export default function ChartPage() {
         {/* Loading */}
         {ctx.loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-100 rounded-2xl animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-24 bg-neutral-100 rounded-2xl animate-pulse" />)}
           </div>
         ) : monthGroups.length === 0 ? (
-          <div className="text-center text-slate-400 py-16">
-            <p className="text-4xl mb-3">📭</p>
+          <div className="text-center text-neutral-400 py-16">
+            <Inbox size={48} className="text-neutral-300 mx-auto mb-3" />
             <p className="text-sm">{search ? 'ไม่พบรายการที่ค้นหา' : 'ยังไม่มีประวัติรายการ'}</p>
           </div>
         ) : (
@@ -123,45 +123,45 @@ export default function ChartPage() {
                   {/* Month header */}
                   <button
                     onClick={() => toggleExpand(group.month_key)}
-                    className="w-full flex items-center justify-between px-4 py-3.5 active:bg-slate-50 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3.5 active:bg-neutral-50 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-2 h-2 rounded-full ${balance >= 0 ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                      <div className={`w-2 h-2 rounded-full ${balance >= 0 ? 'bg-neutral-700' : 'bg-neutral-400'}`} />
                       <div className="text-left">
-                        <p className="text-sm font-bold text-slate-900">
+                        <p className="text-sm font-bold text-neutral-900">
                           {formatMonthKeyThai(group.month_key)}
                         </p>
-                        <p className="text-[10px] text-slate-400">{totalItems} รายการ</p>
+                        <p className="text-[10px] text-neutral-400">{totalItems} รายการ</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <p className="text-xs font-semibold text-emerald-600 tabular-nums">
+                        <p className="text-xs font-semibold text-neutral-700 tabular-nums">
                           {formatCurrency(group.totalIncome)}
                         </p>
-                        <p className="text-xs font-semibold text-rose-600 tabular-nums">
+                        <p className="text-xs font-semibold text-neutral-500 tabular-nums">
                           {formatCurrency(group.totalExpenses)}
                         </p>
                       </div>
-                      {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                      {isExpanded ? <ChevronUp size={16} className="text-neutral-400" /> : <ChevronDown size={16} className="text-neutral-400" />}
                     </div>
                   </button>
 
                   {/* Expanded detail */}
                   {isExpanded && (
-                    <div className="border-t border-slate-100 px-4 py-3 space-y-3">
+                    <div className="border-t border-neutral-100 px-4 py-3 space-y-3">
                       {/* Mini summary */}
-                      <div className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
+                      <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2">
                         <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded-md flex items-center justify-center ${balance >= 0 ? 'bg-emerald-100' : 'bg-rose-100'}`}>
+                          <div className={`w-6 h-6 rounded-md flex items-center justify-center bg-neutral-200`}>
                             {balance >= 0
-                              ? <ArrowUpRight size={12} className="text-emerald-600" />
-                              : <ArrowDownRight size={12} className="text-rose-600" />
+                              ? <ArrowUpRight size={12} className="text-neutral-700" />
+                              : <ArrowDownRight size={12} className="text-neutral-500" />
                             }
                           </div>
-                          <span className="text-xs text-slate-500">คงเหลือ</span>
+                          <span className="text-xs text-neutral-500">คงเหลือ</span>
                         </div>
-                        <span className={`text-sm font-bold tabular-nums ${balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        <span className={`text-sm font-bold tabular-nums ${balance >= 0 ? 'text-neutral-700' : 'text-neutral-500'}`}>
                           {formatCurrency(balance)}
                         </span>
                       </div>
@@ -169,12 +169,12 @@ export default function ChartPage() {
                       {/* Income items */}
                       {group.income.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider mb-1.5">💰 รายรับ</p>
+                          <p className="text-[10px] font-semibold text-neutral-700 uppercase tracking-wider mb-1.5 flex items-center gap-1"><TrendingUp size={12} /> รายรับ</p>
                           <div className="space-y-1">
                             {group.income.map(inc => (
                               <div key={inc.id} className="flex items-center justify-between py-1">
-                                <p className="text-sm text-slate-900 truncate">{inc.name}</p>
-                                <p className="text-sm font-semibold text-emerald-600 tabular-nums shrink-0 ml-3">
+                                <p className="text-sm text-neutral-900 truncate">{inc.name}</p>
+                                <p className="text-sm font-semibold text-neutral-700 tabular-nums shrink-0 ml-3">
                                   {formatCurrency(inc.amount)}
                                 </p>
                               </div>
@@ -186,17 +186,17 @@ export default function ChartPage() {
                       {/* Expense items */}
                       {group.expenses.length > 0 && (
                         <div>
-                          <p className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider mb-1.5">💸 รายจ่าย</p>
+                          <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5 flex items-center gap-1"><TrendingDown size={12} /> รายจ่าย</p>
                           <div className="space-y-1">
                             {group.expenses.map(exp => (
                               <div key={exp.id} className="flex items-center justify-between py-1">
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   {exp.is_recurring && (
-                                    <span className="text-[8px] text-purple-500 bg-purple-50 px-1 py-0.5 rounded font-medium shrink-0">ประจำ</span>
+                                    <span className="text-[8px] text-neutral-500 bg-neutral-100 px-1 py-0.5 rounded font-medium shrink-0">ประจำ</span>
                                   )}
-                                  <p className="text-sm text-slate-900 truncate">{exp.name}</p>
+                                  <p className="text-sm text-neutral-900 truncate">{exp.name}</p>
                                 </div>
-                                <p className="text-sm font-semibold text-rose-600 tabular-nums shrink-0 ml-3">
+                                <p className="text-sm font-semibold text-neutral-500 tabular-nums shrink-0 ml-3">
                                   {formatCurrency(exp.amount)}
                                 </p>
                               </div>

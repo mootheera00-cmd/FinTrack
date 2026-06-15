@@ -14,9 +14,9 @@ export function Card({ children, className, style, onClick, variant = 'default' 
   const base = 'rounded-2xl p-4 transition-all duration-200';
 
   const variants = {
-    default:  'bg-white border border-slate-200 shadow-sm',
-    elevated: 'bg-slate-50 border border-slate-200 shadow-sm',
-    glass:    'bg-white/80 backdrop-blur-xl border border-slate-200/80 shadow-sm',
+    default:  'bg-white border border-neutral-200 shadow-sm',
+    elevated: 'bg-neutral-50 border border-neutral-200 shadow-sm',
+    glass:    'bg-white/80 backdrop-blur-xl border border-neutral-200/80 shadow-sm',
   };
 
   const interactive = onClick ? 'cursor-pointer active:scale-[0.98] hover:brightness-110' : '';
@@ -47,24 +47,24 @@ interface StatCardProps {
 }
 
 const ACCENT_MAP = {
-  green:   'text-brand-400',
-  red:     'text-rose-500',
-  blue:    'text-blue-600',
-  amber:   'text-amber-500',
-  default: 'text-slate-900',
+  green:   'text-neutral-700',
+  red:     'text-neutral-500',
+  blue:    'text-neutral-600',
+  amber:   'text-neutral-600',
+  default: 'text-neutral-900',
 };
 
 export function StatCard({ label, value, sub, icon, accent = 'default', className, animate }: StatCardProps) {
   return (
     <Card className={clsx(animate && 'animate-fade-up', className)}>
       <div className="flex items-start justify-between mb-2">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
-        {icon && <span className="text-slate-500">{icon}</span>}
+        <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">{label}</span>
+        {icon && <span className="text-neutral-500">{icon}</span>}
       </div>
       <p className={clsx('text-2xl font-bold tabular-nums tracking-tight', ACCENT_MAP[accent])}>
         {value}
       </p>
-      {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-neutral-500 mt-1">{sub}</p>}
     </Card>
   );
 }

@@ -9,18 +9,18 @@ export default {
       },
       colors: {
         brand: {
-          50:  '#fffdf0',
-          100: '#fff8cc',
-          400: '#FFBF00',
-          500: '#FFBF00',
-          600: '#e6ac00',
-          900: '#7a5b00',
+          50:  '#fafafa',
+          100: '#f5f5f5',
+          400: '#a3a3a3',
+          500: '#525252',
+          600: '#404040',
+          900: '#171717',
         },
         surface: {
-          DEFAULT: '#fffdf5',
+          DEFAULT: '#ffffff',
           card:    '#ffffff',
-          elevated:'#fffbeb',
-          border:  '#e2e8f0',
+          elevated:'#fafafa',
+          border:  '#e5e5e5',
         },
       },
       borderRadius: {

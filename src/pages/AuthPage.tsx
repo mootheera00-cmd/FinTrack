@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, Wallet, ArrowLeft, LogOut, Cloud, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Wallet, ArrowLeft, LogOut, Cloud, CheckCircle, Key, AlertTriangle, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useData } from '@/hooks/useData';
 import { useNavigate } from 'react-router-dom';
@@ -158,13 +158,12 @@ export default function AuthPage() {
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Top gradient decoration */}
       <div
-        className="h-64 flex-shrink-0 flex flex-col items-center justify-end pb-8 relative"
-        style={{ background: 'linear-gradient(135deg, #FFBF00 0%, #f59e0b 60%, #d97706 100%)' }}
+        className="h-64 flex-shrink-0 flex flex-col items-center justify-end pb-8 relative bg-neutral-900"
       >
         {/* Back Button */}
         <button
           onClick={() => navigate('/')}
-          className="absolute top-4 left-4 p-2 bg-slate-900/10 hover:bg-slate-900/20 text-slate-900 rounded-full transition-colors flex items-center gap-1 text-sm font-semibold"
+          className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors flex items-center gap-1 text-sm font-semibold"
           title="กลับหน้าหลัก"
         >
           <ArrowLeft size={18} />
@@ -173,59 +172,59 @@ export default function AuthPage() {
 
         {/* Decorative blobs */}
         <div className="absolute top-0 left-0 w-full h-64 overflow-hidden pointer-events-none">
-          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute top-20 -left-8 w-32 h-32 rounded-full bg-white/10 blur-xl" />
+          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute top-20 -left-8 w-32 h-32 rounded-full bg-white/5 blur-xl" />
         </div>
 
         {/* Logo */}
         <div className="relative flex flex-col items-center gap-3">
-          <div className="w-16 h-16 bg-slate-900/15 backdrop-blur rounded-2xl flex items-center justify-center shadow-lg">
-            <Wallet size={32} className="text-slate-900" />
+          <div className="w-16 h-16 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center shadow-lg">
+            <Wallet size={32} className="text-white" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">บันทึกรายรับ-รายจ่าย</h1>
-            <p className="text-sm text-slate-800/70 mt-0.5">Personal Finance Manager</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">บันทึกรายรับ-รายจ่าย</h1>
+            <p className="text-sm text-white/60 mt-0.5">Personal Finance Manager</p>
           </div>
         </div>
       </div>
 
       {/* Card Container */}
       <div className="flex-1 flex flex-col px-4 -mt-6 relative z-10 max-w-md w-full mx-auto">
-        <div className="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-xl border border-neutral-200/80 overflow-hidden">
           {isPermanentUser ? (
             /* Logged In Profile State */
             <div className="p-6 flex flex-col gap-6 text-center">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-100 shadow-inner">
+                <div className="w-16 h-16 bg-neutral-100 text-neutral-500 rounded-full flex items-center justify-center border border-neutral-200 shadow-inner">
                   <CheckCircle size={36} />
                 </div>
-                <h2 className="text-xl font-bold text-slate-900">บัญชีซิงค์ข้อมูลแล้ว</h2>
-                <p className="text-sm text-slate-500">
-                  ยินดีต้อนรับคุณ <span className="font-semibold text-slate-800">{ctx.profile?.display_name || displayName || sessionUser.email}</span>
+                <h2 className="text-xl font-bold text-neutral-900">บัญชีซิงค์ข้อมูลแล้ว</h2>
+                <p className="text-sm text-neutral-500">
+                  ยินดีต้อนรับคุณ <span className="font-semibold text-neutral-800">{ctx.profile?.display_name || displayName || sessionUser.email}</span>
                 </p>
               </div>
 
-              <div className="bg-slate-50 rounded-2xl p-4 text-left border border-slate-100 space-y-2.5">
+              <div className="bg-neutral-50 rounded-2xl p-4 text-left border border-neutral-100 space-y-2.5">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-400">อีเมลบัญชี</span>
-                  <span className="font-medium text-slate-800">{sessionUser.email}</span>
+                  <span className="text-neutral-400">อีเมลบัญชี</span>
+                  <span className="font-medium text-neutral-800">{sessionUser.email}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-400">สถานะคลาวด์</span>
-                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                  <span className="text-neutral-400">สถานะคลาวด์</span>
+                  <span className="text-neutral-700 font-semibold flex items-center gap-1">
                     <Cloud size={14} /> ซิงค์เรียบร้อย
                   </span>
                 </div>
               </div>
 
-              <div className="text-xs text-slate-400 leading-relaxed px-2">
+              <div className="text-xs text-neutral-400 leading-relaxed px-2">
                 ข้อมูลการเงินของคุณถูกเก็บไว้ในระบบคลาวด์อย่างปลอดภัย คุณสามารถเข้าสู่ระบบด้วยอีเมลนี้บนไอโฟนหรือแท็บเล็ตเพื่อดูข้อมูลเดียวกันได้ทันที
               </div>
 
               <div className="flex flex-col gap-3 mt-2">
                 <button
                   onClick={() => navigate('/')}
-                  className="w-full py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-sm"
+                  className="w-full py-3.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-sm"
                 >
                   กลับหน้าหลัก
                 </button>
@@ -233,7 +232,7 @@ export default function AuthPage() {
                 <button
                   onClick={handleSignOut}
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 active:scale-[0.98] text-rose-600 font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl border border-neutral-200 hover:bg-neutral-50 active:scale-[0.98] text-neutral-600 font-semibold text-sm transition-all flex items-center justify-center gap-2"
                 >
                   <LogOut size={16} />
                   {loading ? 'กำลังออกจากระบบ...' : 'ออกจากระบบ'}
@@ -244,14 +243,14 @@ export default function AuthPage() {
             /* Auth Form (SignIn / SignUp) */
             <>
               {/* Tab switcher */}
-              <div className="flex border-b border-slate-200">
+              <div className="flex border-b border-neutral-200">
                 <button
                   type="button"
                   onClick={() => setMode('signin')}
                   className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                     !isSignUp && !isForgot
-                      ? 'text-brand-500 border-b-2 border-brand-500 bg-amber-50/50'
-                      : 'text-slate-400 hover:text-slate-600'
+                      ? 'text-neutral-900 border-b-2 border-neutral-900 bg-neutral-50'
+                      : 'text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   เข้าสู่ระบบ
@@ -261,8 +260,8 @@ export default function AuthPage() {
                   onClick={() => setMode('signup')}
                   className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                     isSignUp
-                      ? 'text-brand-500 border-b-2 border-brand-500 bg-amber-50/50'
-                      : 'text-slate-400 hover:text-slate-600'
+                      ? 'text-neutral-900 border-b-2 border-neutral-900 bg-neutral-50'
+                      : 'text-neutral-400 hover:text-neutral-600'
                   }`}
                 >
                   สมัครสมาชิก
@@ -274,15 +273,15 @@ export default function AuthPage() {
                 /* Forgot Password Form */
                 <form onSubmit={handleForgotPassword} className="p-6 flex flex-col gap-4">
                   <div className="text-center">
-                    <p className="text-3xl mb-2">🔑</p>
-                    <h2 className="font-bold text-slate-900 text-base mb-1">ลืมรหัสผ่าน?</h2>
-                    <p className="text-xs text-slate-500 leading-relaxed">กรอกอีเมลที่ใช้สมัครสมาชิก แล้วเราจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้</p>
+                    <Key size={36} className="text-neutral-400 mx-auto mb-2" />
+                    <h2 className="font-bold text-neutral-900 text-base mb-1">ลืมรหัสผ่าน?</h2>
+                    <p className="text-xs text-neutral-500 leading-relaxed">กรอกอีเมลที่ใช้สมัครสมาชิก แล้วเราจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้</p>
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">อีเมล</label>
+                    <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">อีเมล</label>
                     <div className="relative">
-                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                       <input
                         type="email"
                         placeholder="email@example.com"
@@ -291,20 +290,20 @@ export default function AuthPage() {
                         required
                         autoComplete="email"
                         inputMode="email"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400 transition-all"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400/40 focus:border-neutral-400 transition-all"
                       />
                     </div>
                   </div>
 
                   {error && (
-                    <div className="flex items-start gap-2 px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm">
-                      <span className="mt-0.5">⚠️</span>
+                    <div className="flex items-start gap-2 px-4 py-3 bg-neutral-100 border border-neutral-200 rounded-xl text-neutral-600 text-sm">
+                      <AlertTriangle size={16} className="mt-0.5 shrink-0 text-neutral-500" />
                       <span>{error}</span>
                     </div>
                   )}
                   {successMsg && (
-                    <div className="flex items-start gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                      <span className="mt-0.5">✅</span>
+                    <div className="flex items-start gap-2 px-4 py-3 bg-neutral-100 border border-neutral-200 rounded-xl text-neutral-700 text-sm">
+                      <Check size={16} className="mt-0.5 shrink-0 text-neutral-500" />
                       <span>{successMsg}</span>
                     </div>
                   )}
@@ -312,7 +311,7 @@ export default function AuthPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-semibold text-sm transition-all disabled:opacity-60 shadow-sm"
+                    className="w-full py-3.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-[0.98] text-white font-semibold text-sm transition-all disabled:opacity-60 shadow-sm"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -322,11 +321,11 @@ export default function AuthPage() {
                     ) : 'ส่งลิงก์รีเซ็ตรหัสผ่าน'}
                   </button>
 
-                  <p className="text-center text-sm text-slate-500">
+                  <p className="text-center text-sm text-neutral-500">
                     <button
                       type="button"
                       onClick={() => { setMode('signin'); setError(''); setSuccessMsg(''); }}
-                      className="font-semibold text-brand-500 hover:text-brand-600 transition-colors"
+                      className="font-semibold text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       ← กลับไปเข้าสู่ระบบ
                     </button>
@@ -337,8 +336,8 @@ export default function AuthPage() {
               <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
                 {isSignUp && (
                   /* Upgrading / Syncing explanation card */
-                  <div className="bg-amber-50/60 border border-amber-200/60 rounded-2xl p-3.5 text-xs text-amber-800 leading-relaxed flex gap-2.5">
-                    <Cloud size={18} className="shrink-0 text-amber-600 mt-0.5" />
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-3.5 text-xs text-neutral-700 leading-relaxed flex gap-2.5">
+                    <Cloud size={18} className="shrink-0 text-neutral-500 mt-0.5" />
                     <div>
                       <p className="font-bold mb-0.5">ซิงค์ข้อมูลจากเครื่องนี้ข้ามอุปกรณ์</p>
                       เมื่อสมัครสมาชิก ข้อมูลทั้งหมดที่คุณกรอกไว้ในเครื่องนี้จะถูกผูกเข้ากับอีเมลของคุณโดยอัตโนมัติ ทำให้เปิดใช้งานบนอุปกรณ์อื่น เช่น ไอโฟน ได้ทันที!
@@ -349,16 +348,16 @@ export default function AuthPage() {
                 {/* Display name (signup only) */}
                 {isSignUp && (
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">ชื่อที่แสดง</label>
+                    <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">ชื่อที่แสดง</label>
                     <div className="relative">
-                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                       <input
                         type="text"
                         placeholder="เช่น สมชาย ใจดี"
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         required={isSignUp}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400 transition-all"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400/40 focus:border-neutral-400 transition-all"
                       />
                     </div>
                   </div>
@@ -366,9 +365,9 @@ export default function AuthPage() {
 
                 {/* Email */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">อีเมล</label>
+                  <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">อีเมล</label>
                   <div className="relative">
-                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                     <input
                       type="email"
                       placeholder="email@example.com"
@@ -377,7 +376,7 @@ export default function AuthPage() {
                       required
                       autoComplete="email"
                       inputMode="email"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400 transition-all"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400/40 focus:border-neutral-400 transition-all"
                     />
                   </div>
                 </div>
@@ -385,19 +384,19 @@ export default function AuthPage() {
                 {/* Password */}
                 <div className="flex flex-col gap-1.5">
                   <div className="flex justify-between items-center">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">รหัสผ่าน</label>
+                    <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">รหัสผ่าน</label>
                     {!isSignUp && (
                       <button
                         type="button"
                         onClick={() => { setMode('forgot'); setError(''); setSuccessMsg(''); }}
-                        className="text-xs text-brand-500 hover:text-brand-600 font-medium transition-colors"
+                        className="text-xs text-neutral-500 hover:text-neutral-700 font-medium transition-colors"
                       >
                         ลืมรหัสผ่าน?
                       </button>
                     )}
                   </div>
                   <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder={isSignUp ? 'อย่างน้อย 6 ตัวอักษร' : '••••••••'}
@@ -406,12 +405,12 @@ export default function AuthPage() {
                       required
                       autoComplete={isSignUp ? 'new-password' : 'current-password'}
                       minLength={6}
-                      className="w-full pl-10 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-brand-400 transition-all"
+                      className="w-full pl-10 pr-12 py-3 rounded-xl bg-neutral-50 border border-neutral-200 text-neutral-900 placeholder:text-neutral-400 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400/40 focus:border-neutral-400 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -420,32 +419,32 @@ export default function AuthPage() {
                 </div>
 
                 {!isSignUp && hasLocalData && (
-                  <label className="flex items-start gap-2.5 px-3 py-3 cursor-pointer select-none bg-slate-50 border border-slate-200/80 rounded-xl text-left">
+                  <label className="flex items-start gap-2.5 px-3 py-3 cursor-pointer select-none bg-neutral-50 border border-neutral-200/80 rounded-xl text-left">
                     <input
                       type="checkbox"
                       checked={mergeDataOnSignIn}
                       onChange={(e) => setMergeDataOnSignIn(e.target.checked)}
-                      className="mt-0.5 rounded border-slate-300 text-brand-500 focus:ring-brand-400/40"
+                      className="mt-0.5 rounded border-neutral-300 text-neutral-700 focus:ring-neutral-400/40"
                     />
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-slate-700">ดึงข้อมูลบนเครื่องนี้เข้ากับบัญชีของฉัน</span>
-                      <span className="text-[10px] text-slate-400 leading-normal">รวมรายการที่คุณบันทึกไว้ในเครื่องนี้เข้าไปยังบัญชีคลาวด์เพื่อป้องกันข้อมูลสูญหาย</span>
+                      <span className="text-xs font-semibold text-neutral-700">ดึงข้อมูลบนเครื่องนี้เข้ากับบัญชีของฉัน</span>
+                      <span className="text-[10px] text-neutral-400 leading-normal">รวมรายการที่คุณบันทึกไว้ในเครื่องนี้เข้าไปยังบัญชีคลาวด์เพื่อป้องกันข้อมูลสูญหาย</span>
                     </div>
                   </label>
                 )}
 
                 {/* Error message */}
                 {error && (
-                  <div className="flex items-start gap-2 px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm">
-                    <span className="mt-0.5 shrink-0">⚠️</span>
+                  <div className="flex items-start gap-2 px-4 py-3 bg-neutral-100 border border-neutral-200 rounded-xl text-neutral-600 text-sm">
+                    <AlertTriangle size={16} className="mt-0.5 shrink-0 text-neutral-500" />
                     <span className="whitespace-pre-line">{error}</span>
                   </div>
                 )}
 
                 {/* Success message */}
                 {successMsg && (
-                  <div className="flex items-start gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                    <span className="mt-0.5">✅</span>
+                  <div className="flex items-start gap-2 px-4 py-3 bg-neutral-100 border border-neutral-200 rounded-xl text-neutral-700 text-sm">
+                    <Check size={16} className="mt-0.5 shrink-0 text-neutral-500" />
                     <span>{successMsg}</span>
                   </div>
                 )}
@@ -454,7 +453,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-semibold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-1"
+                  className="w-full py-3.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-[0.98] text-white font-semibold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-1"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -467,12 +466,12 @@ export default function AuthPage() {
                 </button>
 
                 {/* Switch mode link */}
-                <p className="text-center text-sm text-slate-500">
+                <p className="text-center text-sm text-neutral-500">
                   {isSignUp ? 'มีบัญชีอยู่แล้ว?' : 'ยังไม่มีบัญชี?'}{' '}
                   <button
                     type="button"
                     onClick={() => { setMode(isSignUp ? 'signin' : 'signup'); setError(''); setSuccessMsg(''); }}
-                    className="font-semibold text-brand-500 hover:text-brand-600 transition-colors"
+                    className="font-semibold text-neutral-700 hover:text-neutral-900 transition-colors"
                   >
                     {isSignUp ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
                   </button>
@@ -484,7 +483,7 @@ export default function AuthPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-slate-400 mt-6 mb-8 pb-safe">
+        <p className="text-center text-xs text-neutral-400 mt-6 mb-8 pb-safe">
           ข้อมูลของคุณถูกเก็บอย่างปลอดภัยด้วย Supabase RLS 🔒
         </p>
       </div>

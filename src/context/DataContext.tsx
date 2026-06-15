@@ -1,6 +1,8 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { advanceMonthKey } from '@/lib/utils';
+import { saveAllToCache, loadAllFromCache, clearCache } from '@/lib/db-cache';
+import { downloadBackup, parseBackupFile, type BackupData } from '@/lib/backup';
 import type {
   Profile,
   Income,
@@ -26,6 +28,10 @@ interface DataContextType {
   sharedExpenses: SharedExpense[];
   monthlySummaries: MonthlySummary[];
   loading: boolean;
+  /** True on first mount while cache is loaded */
+  initialLoading: boolean;
+  /** ISO timestamp of last successful Supabase sync */
+  lastSyncTime: string | null;
   refetchAll: () => Promise<void>;
   // Income CRUD
   createIncome: (input: IncomeInput) => Promise<Income>;
@@ -48,6 +54,11 @@ interface DataContextType {
   toggleSharedInclude: (id: string, include: boolean) => Promise<void>;
   // CSV Export
   exportCSV: () => void;
+  // Backup & Restore
+  backup: () => void;
+  restore: (file: File) => Promise<void>;
+  // Cache control
+  clearLocalCache: () => void;
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -111,6 +122,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [sharedExpenses, setSharedExpenses] = useState<SharedExpense[]>([]);
   const [monthlySummaries, setMonthlySummaries] = useState<MonthlySummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
+  const mountedRef = useRef(false);
 
   // Single static local user ID — no login needed
   const LOCAL_UID_KEY = 'fintrack_local_uid';
@@ -127,15 +141,66 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const localUserId = getLocalUserId();
 
-  // Fetch all data on mount
+  // ─── Cache-first mount ──────────────────────────────────────
+  // Load from localStorage cache instantly, then sync from Supabase
   useEffect(() => {
-    // Ensure profile exists via RPC
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+
+    // 1. Load cached data instantly (synchronous, 0ms)
+    const cached = loadAllFromCache();
+    if (cached) {
+      setProfile(cached.data.profile);
+      setIncomes(cached.data.incomes);
+      setExpenses(cached.data.expenses);
+      setInstallments(cached.data.installments);
+      setSharedExpenses(cached.data.sharedExpenses);
+    }
+    setInitialLoading(false);
+
+    // 2. Ensure profile exists via RPC
     supabase.rpc('get_or_create_profile', { p_id: localUserId }).then(({ data }) => {
       if (data && data.length > 0) setProfile(data[0] as Profile);
     });
-    void refetchAll();
+
+    // 3. Background sync from Supabase
+    syncFromSupabase();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Full sync from Supabase — sets loading while fetching */
+  const syncFromSupabase = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [pRes, iRes, eRes, instRes, sRes] = await Promise.all([
+        supabase.rpc('get_or_create_profile', { p_id: localUserId }),
+        supabase.rpc('get_incomes',             { p_user_id: localUserId }),
+        supabase.rpc('get_expenses',            { p_user_id: localUserId }),
+        supabase.rpc('get_installments',        { p_user_id: localUserId }),
+        supabase.rpc('get_shared_expenses',     { p_user_id: localUserId }),
+      ]);
+
+      if (pRes.data  && pRes.data.length  > 0) setProfile(pRes.data[0] as Profile);
+      if (iRes.data)  setIncomes(iRes.data as Income[]);
+      if (eRes.data)  setExpenses(eRes.data as Expense[]);
+      if (instRes.data) setInstallments(instRes.data as Installment[]);
+      if (sRes.data)  setSharedExpenses(sRes.data as SharedExpense[]);
+
+      // Save fresh data to cache for next launch
+      saveAllToCache({
+        profile:        pRes.data?.[0] as Profile ?? null,
+        incomes:        iRes.data  as Income[]        ?? [],
+        expenses:       eRes.data  as Expense[]       ?? [],
+        installments:   instRes.data as Installment[] ?? [],
+        sharedExpenses: sRes.data  as SharedExpense[] ?? [],
+      });
+      setLastSyncTime(new Date().toISOString());
+    } catch (err) {
+      console.warn('Background sync failed — cached data shown', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [localUserId]);
 
   const refetchProfile = useCallback(async () => {
     const { data } = await supabase.rpc('get_or_create_profile', { p_id: localUserId });
@@ -163,21 +228,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [localUserId]);
 
   const refetchAll = useCallback(async () => {
-    setLoading(true);
-    await Promise.all([
-      refetchProfile(),
-      refetchIncomes(),
-      refetchExpenses(),
-      refetchInstallments(),
-      refetchShared(),
-    ]);
-    setLoading(false);
-  }, [refetchProfile, refetchIncomes, refetchExpenses, refetchInstallments, refetchShared]);
-
-  // Fetch on mount
-  useEffect(() => {
-    void refetchAll();
-  }, [refetchAll]);
+    await syncFromSupabase();
+  }, [syncFromSupabase]);
 
   // Recompute summaries whenever source data changes
   useEffect(() => {
@@ -364,6 +416,51 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // ─── Backup & Restore ────────────────────────────────────
+  const backup = useCallback(() => {
+    downloadBackup({ incomes, expenses, installments, sharedExpenses });
+    // Also save to cache immediately
+    saveAllToCache({ profile, incomes, expenses, installments, sharedExpenses });
+  }, [incomes, expenses, installments, sharedExpenses, profile]);
+
+  const restore = useCallback(async (file: File) => {
+    const data: BackupData = await parseBackupFile(file);
+    // Import data via RPC — one by one
+    for (const inc of data.incomes) {
+      await supabase.rpc('create_income', {
+        p_user_id: localUserId, p_name: inc.name,
+        p_amount: inc.amount, p_month_key: inc.month_key,
+      });
+    }
+    for (const exp of data.expenses) {
+      await supabase.rpc('create_expense', {
+        p_user_id: localUserId, p_name: exp.name,
+        p_amount: exp.amount, p_month_key: exp.month_key,
+        p_is_recurring: exp.is_recurring,
+      });
+    }
+    for (const inst of data.installments) {
+      await supabase.rpc('create_installment', {
+        p_user_id: localUserId, p_description: inst.description,
+        p_total_price: inst.total_price, p_total_months: inst.total_months,
+        p_monthly_amount: inst.monthly_amount, p_start_month: inst.start_month,
+      });
+    }
+    for (const se of data.sharedExpenses) {
+      await supabase.rpc('create_shared_expense', {
+        p_user_id: localUserId, p_description: se.description,
+        p_total_amount: se.total_amount, p_split_count: se.split_count,
+        p_my_share: se.my_share, p_month_key: se.month_key,
+      });
+    }
+    // Refresh all data from server
+    await syncFromSupabase();
+  }, [localUserId, syncFromSupabase]);
+
+  const clearLocalCache = useCallback(() => {
+    clearCache();
+  }, []);
+
   // ─── CSV Export ──────────────────────────────────────────
   const exportCSV = useCallback(() => {
     const escCsv = (val: unknown): string => {
@@ -415,6 +512,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         sharedExpenses,
         monthlySummaries,
         loading,
+        initialLoading,
+        lastSyncTime,
         refetchAll,
         createIncome,
         updateIncome,
@@ -432,6 +531,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         deleteSharedExpense,
         toggleSharedInclude,
         exportCSV,
+        backup,
+        restore,
+        clearLocalCache,
       }}
     >
       {children}

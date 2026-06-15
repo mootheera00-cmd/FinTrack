@@ -12,7 +12,7 @@ export default function Header({ title, subtitle, right, className }: HeaderProp
   return (
     <header
       className={clsx(
-        'sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/80',
+        'sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-neutral-200/80',
         'flex items-end justify-between pb-3',
         className
       )}
@@ -24,9 +24,9 @@ export default function Header({ title, subtitle, right, className }: HeaderProp
       }}
     >
       <div className="flex flex-col justify-center">
-        <h1 className="text-lg font-bold text-slate-900 leading-tight">{title}</h1>
+        <h1 className="text-lg font-bold text-neutral-900 leading-tight">{title}</h1>
         {subtitle && (
-          <p className="text-[10px] text-slate-500 leading-none mt-1">{subtitle}</p>
+          <p className="text-[10px] text-neutral-500 leading-none mt-1">{subtitle}</p>
         )}
       </div>
       {right && <div className="flex items-center gap-2 mb-0.5">{right}</div>}

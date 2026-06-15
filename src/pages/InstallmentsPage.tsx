@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, AlertTriangle, ClipboardList, Check } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -127,34 +127,34 @@ export default function InstallmentsPage() {
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-slate-900">📋 ผ่อนชำระ</h1>
+          <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2"><ClipboardList size={20} className="text-neutral-500" /> ผ่อนชำระ</h1>
           <button
             onClick={() => openModal()}
-            className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center shadow-md active:scale-95"
+            className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center shadow-md active:scale-95"
           >
-            <Plus size={20} className="text-slate-900" />
+            <Plus size={20} className="text-white" />
           </button>
         </div>
 
         {/* Summary card */}
-        <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 mb-4">
-          <p className="text-xs text-slate-500 mb-1">ค่างวดรายเดือนรวม</p>
-          <p className="text-2xl font-bold text-blue-700 tabular-nums">
+        <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-4 mb-4">
+          <p className="text-xs text-neutral-500 mb-1">ค่างวดรายเดือนรวม</p>
+          <p className="text-2xl font-bold text-neutral-700 tabular-nums">
             {formatCurrency(totalMonthly)}
           </p>
-          <p className="text-xs text-slate-400 mt-1">{activeInstallments.length} รายการที่กำลังผ่อน</p>
+          <p className="text-xs text-neutral-400 mt-1">{activeInstallments.length} รายการที่กำลังผ่อน</p>
         </div>
 
         {/* Installment list */}
         {ctx.loading ? (
           <div className="space-y-3">
             {[1, 2].map(i => (
-              <div key={i} className="h-28 bg-slate-100 rounded-2xl animate-pulse" />
+              <div key={i} className="h-28 bg-neutral-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : activeInstallments.length === 0 ? (
-          <div className="text-center text-slate-400 py-16">
-            <p className="text-4xl mb-3">📋</p>
+          <div className="text-center text-neutral-400 py-16">
+            <ClipboardList size={48} className="text-neutral-300 mx-auto mb-3" />
             <p>ไม่มีรายการผ่อนชำระ</p>
           </div>
         ) : (
@@ -169,67 +169,81 @@ export default function InstallmentsPage() {
               const remainingBalance = inst.total_price - (inst.monthly_amount * inst.autoPaid);
 
               return (
-                <Card key={inst.id} className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-semibold text-slate-900 truncate">{inst.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
-                      <p className="text-[10px] text-slate-400 whitespace-nowrap tabular-nums">
-                        28 {formatMonthKeyThai(endMonth, true)}
-                      </p>
+                <Card key={inst.id} className="relative overflow-hidden">
+                  {/* Top accent bar for nearly-done items */}
+                  {nearlyDone && (
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-neutral-700" />
+                  )}
+
+                  {/* Row 1: Name + Monthly Amount */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-neutral-700 shrink-0" />
+                      <p className="font-semibold text-neutral-900 truncate text-[15px]">{inst.description}</p>
                       {nearlyDone && (
-                        <span className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">
-                          <AlertTriangle size={10} />
+                        <span className="flex items-center gap-0.5 text-[9px] text-neutral-600 bg-neutral-100 px-1.5 py-0.5 rounded font-medium shrink-0 whitespace-nowrap">
+                          <AlertTriangle size={9} />
                           ใกล้หมด
                         </span>
                       )}
-                      <button
-                        onClick={() => openModal(inst)}
-                        className="text-slate-300 hover:text-blue-500 transition-colors"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget({ id: inst.id, name: inst.description })}
-                        className="text-slate-300 hover:text-rose-500 transition-colors -mr-1"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                    </div>
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="text-[10px] text-neutral-400 leading-tight">ค่างวด/เดือน</p>
+                      <p className="text-lg font-bold text-neutral-900 tabular-nums leading-tight">
+                        {formatCurrency(inst.monthly_amount)}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Progress bar */}
-                  <div>
-                    <div className="flex justify-between text-xs text-slate-400 mb-1">
-                      <span>{inst.autoPaid}/{inst.total_months} งวด</span>
-                      <span>{progress.toFixed(0)}%</span>
+                  {/* Row 2: Progress bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[11px] text-neutral-500">
+                        งวดที่ {inst.autoPaid}/{inst.total_months}
+                      </span>
+                      <span className="text-[11px] font-medium text-neutral-600 tabular-nums">
+                        {progress.toFixed(0)}%
+                      </span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-neutral-100 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${nearlyDone ? 'bg-amber-400' : 'bg-blue-500'}`}
+                        className="h-full rounded-full transition-all bg-neutral-800"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <div>
-                      <p className="text-xs text-slate-400">ค่างวด/เดือน</p>
-                      <p className="font-bold text-blue-700 tabular-nums">
-                        {formatCurrency(inst.monthly_amount)}
-                      </p>
-                      {remainingBalance > 0 && (
-                        <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">
-                          คงเหลือ {formatCurrency(remainingBalance)}
-                        </p>
-                      )}
+                  {/* Row 3: Details + Actions */}
+                  <div className="flex items-center justify-between pt-1 border-t border-neutral-100">
+                    <div className="flex items-center gap-3 text-[11px] text-neutral-400">
+                      <span className="tabular-nums">
+                        รวม {formatCurrency(inst.total_price)}
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                      <span className="tabular-nums">
+                        คงเหลือ {formatCurrency(remainingBalance)}
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                      <span className="tabular-nums">
+                        สิ้นสุด {formatMonthKeyThai(endMonth, true)}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full font-medium">
-                      ✓ จ่ายอัตโนมัติ
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openModal(inst)}
+                        className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100 transition-all"
+                        title="แก้ไข"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget({ id: inst.id, name: inst.description })}
+                        className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-500 hover:bg-neutral-100 transition-all"
+                        title="ลบ"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 </Card>
               );
@@ -240,30 +254,37 @@ export default function InstallmentsPage() {
         {/* Completed installments */}
         {installmentsWithAuto.filter(i => i.autoPaid >= i.total_months).length > 0 && (
           <div className="mt-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-              ผ่อนครบแล้ว ✅
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Check size={12} className="text-neutral-400" /> ผ่อนครบแล้ว
             </p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {installmentsWithAuto
                 .filter(i => i.autoPaid >= i.total_months)
                 .map(inst => (
-                  <Card key={inst.id} className="opacity-60 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-slate-700">{inst.description}</p>
-                      <p className="text-xs text-slate-400">{inst.total_months} งวด • {formatCurrency(inst.total_price)}</p>
+                  <Card key={inst.id} className="opacity-50 flex items-center justify-between !p-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-neutral-600 truncate">{inst.description}</p>
+                        <p className="text-[10px] text-neutral-400 tabular-nums">{inst.total_months} งวด • {formatCurrency(inst.total_price)}</p>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => openModal(inst)}
-                      className="text-slate-300 hover:text-blue-500 transition-colors"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget({ id: inst.id, name: inst.description })}
-                      className="text-slate-300 hover:text-rose-500 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => openModal(inst)}
+                        className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100 transition-all"
+                        title="แก้ไข"
+                      >
+                        <Pencil size={11} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget({ id: inst.id, name: inst.description })}
+                        className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-500 hover:bg-neutral-100 transition-all"
+                        title="ลบ"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
                   </Card>
                 ))}
             </div>
@@ -274,11 +295,11 @@ export default function InstallmentsPage() {
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editTarget ? 'แก้ไขรายการผ่อน' : 'เพิ่มรายการผ่อน'}>
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               ชื่อสินค้า / รายการ
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               placeholder="เช่น โน้ตบุ๊ค, มือถือ"
               value={desc}
               onChange={e => setDesc(e.target.value)}
@@ -287,14 +308,14 @@ export default function InstallmentsPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
                 ราคารวม (บาท)
               </label>
               <input
                 type="number"
                 min="0"
                 inputMode="decimal"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
                 placeholder="0.00"
                 value={totalPrice}
                 onChange={e => {
@@ -304,14 +325,14 @@ export default function InstallmentsPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
                 จำนวนงวด
               </label>
               <input
                 type="number"
                 min="1"
                 inputMode="numeric"
-                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
                 placeholder="12"
                 value={totalMonths}
                 onChange={e => {
@@ -323,14 +344,14 @@ export default function InstallmentsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               ค่างวด/เดือน (บาท)
             </label>
             <input
               type="number"
               min="0"
               inputMode="decimal"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               placeholder="คำนวณอัตโนมัติ"
               value={monthlyAmount}
               onChange={e => setMonthlyAmount(e.target.value)}
@@ -338,17 +359,17 @@ export default function InstallmentsPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               เริ่มผ่อนเดือน
             </label>
-            <div className="flex items-center border border-slate-200 rounded-xl px-4 py-2.5">
-              <button onClick={() => setStartMonth(k => advanceMonthKey(k, -1))} className="text-slate-500">
+            <div className="flex items-center border border-neutral-200 rounded-xl px-4 py-2.5">
+              <button onClick={() => setStartMonth(k => advanceMonthKey(k, -1))} className="text-neutral-500">
                 <ChevronLeft size={16} />
               </button>
-              <span className="flex-1 text-center font-medium text-slate-900">
+              <span className="flex-1 text-center font-medium text-neutral-900">
                 {formatMonthKeyThai(startMonth)}
               </span>
-              <button onClick={() => setStartMonth(k => advanceMonthKey(k, 1))} className="text-slate-500">
+              <button onClick={() => setStartMonth(k => advanceMonthKey(k, 1))} className="text-neutral-500">
                 <ChevronRight size={16} />
               </button>
             </div>

@@ -33,19 +33,19 @@ export function ConfirmDialog({
 
       {/* Dialog */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 animate-scale-in">
-        <p className="text-sm font-bold text-slate-900 text-center mb-2">{title}</p>
-        <p className="text-xs text-slate-500 text-center leading-relaxed mb-5">{message}</p>
+        <p className="text-sm font-bold text-neutral-900 text-center mb-2">{title}</p>
+        <p className="text-xs text-neutral-500 text-center leading-relaxed mb-5">{message}</p>
 
         <div className="flex flex-col gap-2">
           <button
             onClick={onConfirm}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 active:scale-[0.97] transition-all"
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-neutral-600 bg-neutral-100 hover:bg-neutral-200 active:scale-[0.97] transition-all"
           >
             {confirmLabel}
           </button>
           <button
             onClick={onCancel}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 active:scale-[0.97] transition-all shadow-sm"
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-neutral-700 hover:bg-neutral-800 active:scale-[0.97] transition-all shadow-sm"
           >
             ยกเลิก
           </button>

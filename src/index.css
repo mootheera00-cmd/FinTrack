@@ -13,13 +13,13 @@
 
   html {
     /* Prevent elastic scroll bounce revealing white on iOS */
-    background-color: #fffdf5;
+    background-color: #ffffff;
     /* Smooth scrolling on iOS */
     -webkit-overflow-scrolling: touch;
   }
 
   body {
-    @apply bg-surface text-slate-900 antialiased;
+    @apply bg-surface text-neutral-900 antialiased;
     /* Prevent font size inflation on iOS orientation change */
     -webkit-text-size-adjust: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'San Francisco',

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, RefreshCw, TrendingDown } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -114,32 +114,32 @@ export default function ExpensesPage() {
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-slate-900">💸 รายจ่าย</h1>
+          <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2"><TrendingDown size={20} className="text-neutral-500" /> รายจ่าย</h1>
           <button
             onClick={() => openModal()}
-            className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center shadow-md active:scale-95"
+            className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center shadow-md active:scale-95"
           >
-            <Plus size={20} className="text-slate-900" />
+            <Plus size={20} className="text-white" />
           </button>
         </div>
 
         {/* Total card */}
-        <div className="rounded-2xl bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200 p-4 mb-4">
-          <p className="text-xs text-slate-500 mb-1">รายจ่ายรวม</p>
-          <p className="text-2xl font-bold text-rose-600 tabular-nums">{formatCurrency(total)}</p>
-          <p className="text-xs text-slate-400 mt-1">{monthExpenses.length} รายการ</p>
+        <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-4 mb-4">
+          <p className="text-xs text-neutral-500 mb-1">รายจ่ายรวม</p>
+          <p className="text-xl font-bold text-neutral-700 tabular-nums">{formatCurrency(total)}</p>
+          <p className="text-xs text-neutral-400 mt-1">{monthExpenses.length} รายการ</p>
         </div>
 
         {/* Expense list */}
         {ctx.loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+              <div key={i} className="h-16 bg-neutral-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : monthExpenses.length === 0 ? (
-          <div className="text-center text-slate-400 py-16">
-            <p className="text-4xl mb-3">💸</p>
+          <div className="text-center text-neutral-400 py-16">
+            <TrendingDown size={36} className="text-neutral-300 mx-auto mb-3" />
             <p>ยังไม่มีรายจ่ายในเดือนนี้</p>
           </div>
         ) : (
@@ -148,38 +148,38 @@ export default function ExpensesPage() {
             {recurringMonthExpenses.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider flex items-center gap-1">
-                    <RefreshCw size={11} /> รายจ่ายประจำ
+                  <p className="text-xs font-semibold text-neutral-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <RefreshCw size={12} /> รายจ่ายประจำ
                   </p>
-                  <p className="text-xs font-semibold text-amber-600 tabular-nums">
+                  <p className="text-sm font-semibold text-neutral-700 tabular-nums">
                     {formatCurrency(recurringMonthExpenses.reduce((s, e) => s + e.amount, 0))}
                   </p>
                 </div>
                 <div className="space-y-2">
                   {recurringMonthExpenses.map(exp => (
-                    <Card key={exp.id} className="flex items-center gap-3 border-amber-100 bg-amber-50/40">
+                    <Card key={exp.id} className="flex items-center gap-3 border-neutral-200 bg-neutral-50/40">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 truncate">{exp.name}</p>
+                        <p className="font-semibold text-neutral-900 truncate">{exp.name}</p>
                       </div>
-                      <p className="font-bold text-rose-600 tabular-nums shrink-0">
+                      <p className="font-bold text-neutral-700 tabular-nums shrink-0">
                         {formatCurrency(exp.amount)}
                       </p>
                       <button
                         onClick={() => ctx.toggleExpenseRecurring(exp.id, false)}
-                        className="shrink-0 text-amber-500 hover:text-slate-400 transition-colors"
+                        className="shrink-0 text-neutral-400 hover:text-neutral-600 transition-colors"
                         title="ยกเลิกรายจ่ายประจำ"
                       >
                         <RefreshCw size={14} />
                       </button>
                       <button
                         onClick={() => openModal(exp)}
-                        className="shrink-0 text-slate-300 hover:text-blue-500 transition-colors"
+                        className="shrink-0 text-neutral-300 hover:text-neutral-700 transition-colors"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                       onClick={() => setDeleteTarget({ id: exp.id, name: exp.name })}
-                        className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
+                        className="shrink-0 text-neutral-300 hover:text-neutral-500 transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -193,10 +193,10 @@ export default function ExpensesPage() {
             {oneTimeExpenses.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                     รายจ่ายเดือนนี้
                   </p>
-                  <p className="text-xs font-semibold text-slate-500 tabular-nums">
+                  <p className="text-sm font-semibold text-neutral-700 tabular-nums">
                     {formatCurrency(oneTimeExpenses.reduce((s, e) => s + e.amount, 0))}
                   </p>
                 </div>
@@ -204,27 +204,27 @@ export default function ExpensesPage() {
                   {oneTimeExpenses.map(exp => (
                     <Card key={exp.id} className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-900 truncate">{exp.name}</p>
+                        <p className="font-semibold text-neutral-900 truncate">{exp.name}</p>
                       </div>
-                      <p className="font-bold text-rose-600 tabular-nums shrink-0">
+                      <p className="font-bold text-neutral-700 tabular-nums shrink-0">
                         {formatCurrency(exp.amount)}
                       </p>
                       <button
                         onClick={() => ctx.toggleExpenseRecurring(exp.id, true)}
-                        className="shrink-0 text-slate-300 hover:text-amber-400 transition-colors"
+                        className="shrink-0 text-neutral-300 hover:text-neutral-500 transition-colors"
                         title="ทำเครื่องหมายรายจ่ายประจำ"
                       >
                         <RefreshCw size={14} />
                       </button>
                       <button
                         onClick={() => openModal(exp)}
-                        className="shrink-0 text-slate-300 hover:text-blue-500 transition-colors"
+                        className="shrink-0 text-neutral-300 hover:text-neutral-700 transition-colors"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => setDeleteTarget({ id: exp.id, name: exp.name })}
-                        className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
+                        className="shrink-0 text-neutral-300 hover:text-neutral-500 transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -240,11 +240,11 @@ export default function ExpensesPage() {
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editTarget ? 'แก้ไขรายจ่าย' : 'เพิ่มรายจ่าย'}>
         <div className="p-5 space-y-4">
           <div className="relative">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               ชื่อรายจ่าย
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               placeholder="เช่น ค่าอาหาร, ค่าไฟ"
               value={name}
               onChange={e => {
@@ -256,11 +256,11 @@ export default function ExpensesPage() {
               autoComplete="off"
             />
             {showSuggestions && filteredSuggestions.length > 0 && (
-              <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+              <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-neutral-200 rounded-xl shadow-lg overflow-hidden">
                 {filteredSuggestions.slice(0, 5).map(s => (
                   <button
                     key={s}
-                    className="w-full text-left px-4 py-2.5 text-sm text-slate-900 hover:bg-slate-50 border-b border-slate-100 last:border-0"
+                    className="w-full text-left px-4 py-2.5 text-sm text-neutral-900 hover:bg-neutral-50 border-b border-neutral-100 last:border-0"
                     onMouseDown={() => { setName(s); setShowSuggestions(false); }}
                   >
                     {s}
@@ -271,14 +271,14 @@ export default function ExpensesPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               จำนวนเงิน (บาท)
             </label>
             <input
               type="number"
               min="0"
               inputMode="decimal"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               placeholder="0.00"
               value={amount}
               onChange={e => setAmount(e.target.value)}
@@ -286,17 +286,17 @@ export default function ExpensesPage() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               เดือน
             </label>
-            <div className="flex items-center border border-slate-200 rounded-xl px-4 py-2.5">
-              <button onClick={() => setModalMonth(k => advanceMonthKey(k, -1))} className="text-slate-500">
+            <div className="flex items-center border border-neutral-200 rounded-xl px-4 py-2.5">
+              <button onClick={() => setModalMonth(k => advanceMonthKey(k, -1))} className="text-neutral-500">
                 <ChevronLeft size={16} />
               </button>
-              <span className="flex-1 text-center font-medium text-slate-900">
+              <span className="flex-1 text-center font-medium text-neutral-900">
                 {formatMonthKeyThai(modalMonth)}
               </span>
-              <button onClick={() => setModalMonth(k => advanceMonthKey(k, 1))} className="text-slate-500">
+              <button onClick={() => setModalMonth(k => advanceMonthKey(k, 1))} className="text-neutral-500">
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -306,13 +306,13 @@ export default function ExpensesPage() {
             onClick={() => setIsRecurring(v => !v)}
             className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-colors ${
               isRecurring
-                ? 'bg-amber-50 border-amber-300 text-amber-700'
-                : 'bg-slate-50 border-slate-200 text-slate-500'
+                ? 'bg-neutral-100 border-neutral-300 text-neutral-700'
+                : 'bg-neutral-50 border-neutral-200 text-neutral-500'
             }`}
           >
             <RefreshCw size={16} />
             <span className="text-sm font-medium">
-              {isRecurring ? 'รายจ่ายประจำ 🔄 (เปิด)' : 'ทำเครื่องหมายรายจ่ายประจำ 🔄'}
+              {isRecurring ? 'รายจ่ายประจำ (เปิด)' : 'ทำเครื่องหมายรายจ่ายประจำ'}
             </span>
           </button>
 

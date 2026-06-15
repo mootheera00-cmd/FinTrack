@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -63,32 +63,32 @@ export default function IncomePage() {
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-slate-900">💰 รายรับ</h1>
+          <h1 className="text-xl font-bold text-neutral-900 flex items-center gap-2"><TrendingUp size={20} className="text-neutral-500" /> รายรับ</h1>
           <button
             onClick={() => openModal()}
-            className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center shadow-md active:scale-95"
+            className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center shadow-md active:scale-95"
           >
-            <Plus size={20} className="text-slate-900" />
+            <Plus size={20} className="text-white" />
           </button>
         </div>
 
         {/* Total card */}
-        <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 p-4 mb-4">
-          <p className="text-xs text-slate-500 mb-1">รายรับรวม</p>
-          <p className="text-2xl font-bold text-emerald-600 tabular-nums">{formatCurrency(total)}</p>
-          <p className="text-xs text-slate-400 mt-1">{monthIncomes.length} รายการ</p>
+        <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-4 mb-4">
+          <p className="text-xs text-neutral-500 mb-1">รายรับรวม</p>
+          <p className="text-xl font-bold text-neutral-700 tabular-nums">{formatCurrency(total)}</p>
+          <p className="text-xs text-neutral-400 mt-1">{monthIncomes.length} รายการ</p>
         </div>
 
         {/* Income list */}
         {ctx.loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+              <div key={i} className="h-16 bg-neutral-100 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : monthIncomes.length === 0 ? (
-          <div className="text-center text-slate-400 py-16">
-            <p className="text-4xl mb-3">💰</p>
+          <div className="text-center text-neutral-400 py-16">
+            <TrendingUp size={36} className="text-neutral-300 mx-auto mb-3" />
             <p>ยังไม่มีรายรับในเดือนนี้</p>
           </div>
         ) : (
@@ -96,21 +96,21 @@ export default function IncomePage() {
             {monthIncomes.map(inc => (
               <Card key={inc.id} className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 truncate">{inc.name}</p>
+                  <p className="font-semibold text-neutral-900 truncate">{inc.name}</p>
                 </div>
-                <p className="font-bold text-emerald-600 tabular-nums shrink-0">
+                <p className="font-bold text-neutral-700 tabular-nums shrink-0">
                   {formatCurrency(inc.amount)}
                 </p>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => openModal(inc)}
-                    className="text-slate-300 hover:text-blue-500 transition-colors"
+                    className="text-neutral-300 hover:text-neutral-700 transition-colors"
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => setDeleteTarget({ id: inc.id, name: inc.name })}
-                    className="text-slate-300 hover:text-rose-500 transition-colors"
+                    className="text-neutral-300 hover:text-neutral-500 transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -135,47 +135,47 @@ export default function IncomePage() {
       <Modal open={showModal} onClose={() => setShowModal(false)} title={editTarget ? 'แก้ไขรายรับ' : 'เพิ่มรายรับ'}>
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
-              ชื่อรายรับ
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
+              ชื่อรายการ
             </label>
             <input
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               placeholder="เช่น เงินเดือน, ฟรีแลนซ์"
               value={name}
               onChange={e => setName(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               จำนวนเงิน (บาท)
             </label>
             <input
               type="number"
               min="0"
               inputMode="decimal"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="w-full border border-neutral-200 rounded-xl px-4 py-2.5 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400"
               placeholder="0.00"
               value={amount}
               onChange={e => setAmount(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider block mb-1.5">
               เดือน
             </label>
-            <div className="flex items-center border border-slate-200 rounded-xl px-4 py-2.5">
+            <div className="flex items-center border border-neutral-200 rounded-xl px-4 py-2.5">
               <button
                 onClick={() => setModalMonth(k => advanceMonthKey(k, -1))}
-                className="text-slate-500"
+                className="text-neutral-500"
               >
                 <ChevronLeft size={16} />
               </button>
-              <span className="flex-1 text-center font-medium text-slate-900">
+              <span className="flex-1 text-center font-medium text-neutral-900">
                 {formatMonthKeyThai(modalMonth)}
               </span>
               <button
                 onClick={() => setModalMonth(k => advanceMonthKey(k, 1))}
-                className="text-slate-500"
+                className="text-neutral-500"
               >
                 <ChevronRight size={16} />
               </button>
