@@ -67,6 +67,13 @@ export type ExpenseInput       = Omit<Expense,       'id' | 'user_id' | 'created
 export type InstallmentInput   = Omit<Installment,   'id' | 'user_id' | 'created_at' | 'updated_at'>;
 export type SharedExpenseInput = Omit<SharedExpense, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
 
+// ─── Update types (partial, id required) ─────────────────────
+
+export type IncomeUpdate        = Partial<IncomeInput>        & { id: string };
+export type ExpenseUpdate       = Partial<ExpenseInput>       & { id: string };
+export type InstallmentUpdate   = Partial<InstallmentInput>   & { id: string };
+export type SharedExpenseUpdate = Partial<SharedExpenseInput> & { id: string };
+
 // ─── Computed monthly summary ─────────────────────────────────
 
 export interface MonthlySummary {

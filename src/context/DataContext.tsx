@@ -5,12 +5,16 @@ import type {
   Profile,
   Income,
   IncomeInput,
+  IncomeUpdate,
   Expense,
   ExpenseInput,
+  ExpenseUpdate,
   Installment,
   InstallmentInput,
+  InstallmentUpdate,
   SharedExpense,
   SharedExpenseInput,
+  SharedExpenseUpdate,
   MonthlySummary,
 } from '@/types';
 
@@ -25,17 +29,21 @@ interface DataContextType {
   refetchAll: () => Promise<void>;
   // Income CRUD
   createIncome: (input: IncomeInput) => Promise<Income>;
+  updateIncome: (input: IncomeUpdate) => Promise<void>;
   deleteIncome: (id: string) => Promise<void>;
   // Expense CRUD
   createExpense: (input: ExpenseInput) => Promise<Expense>;
+  updateExpense: (input: ExpenseUpdate) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
   toggleExpenseRecurring: (id: string, is_recurring: boolean) => Promise<void>;
   // Installment CRUD
   createInstallment: (input: InstallmentInput) => Promise<Installment>;
+  updateInstallment: (input: InstallmentUpdate) => Promise<void>;
   deleteInstallment: (id: string) => Promise<void>;
   markInstallmentPaid: (id: string) => Promise<void>;
   // Shared expense CRUD
   createSharedExpense: (input: SharedExpenseInput) => Promise<SharedExpense>;
+  updateSharedExpense: (input: SharedExpenseUpdate) => Promise<void>;
   deleteSharedExpense: (id: string) => Promise<void>;
   toggleSharedInclude: (id: string, include: boolean) => Promise<void>;
   // CSV Export
@@ -193,6 +201,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     throw new Error('Failed to create income');
   };
 
+  const updateIncome = async (input: IncomeUpdate) => {
+    const { data, error } = await supabase.rpc('update_income', {
+      p_id: input.id,
+      p_user_id: localUserId,
+      p_name: input.name ?? null,
+      p_amount: input.amount ?? null,
+      p_month_key: input.month_key ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (data && data.length > 0) {
+      setIncomes(prev => prev.map(i => i.id === input.id ? (data[0] as Income) : i));
+    }
+  };
+
   const deleteIncome = async (id: string) => {
     const { error } = await supabase.rpc('delete_income', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
@@ -213,6 +235,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return data[0] as Expense;
     }
     throw new Error('Failed to create expense');
+  };
+
+  const updateExpense = async (input: ExpenseUpdate) => {
+    const { data, error } = await supabase.rpc('update_expense', {
+      p_id: input.id,
+      p_user_id: localUserId,
+      p_name: input.name ?? null,
+      p_amount: input.amount ?? null,
+      p_month_key: input.month_key ?? null,
+      p_is_recurring: input.is_recurring ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (data && data.length > 0) {
+      setExpenses(prev => prev.map(e => e.id === input.id ? (data[0] as Expense) : e));
+    }
   };
 
   const deleteExpense = async (id: string) => {
@@ -246,6 +283,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     throw new Error('Failed to create installment');
   };
 
+  const updateInstallment = async (input: InstallmentUpdate) => {
+    const { data, error } = await supabase.rpc('update_installment', {
+      p_id: input.id,
+      p_user_id: localUserId,
+      p_description: input.description ?? null,
+      p_total_price: input.total_price ?? null,
+      p_total_months: input.total_months ?? null,
+      p_monthly_amount: input.monthly_amount ?? null,
+      p_start_month: input.start_month ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (data && data.length > 0) {
+      setInstallments(prev => prev.map(i => i.id === input.id ? (data[0] as Installment) : i));
+    }
+  };
+
   const deleteInstallment = async (id: string) => {
     const { error } = await supabase.rpc('delete_installment', { p_id: id, p_user_id: localUserId });
     if (error) throw new Error(error.message);
@@ -276,6 +329,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return data[0] as SharedExpense;
     }
     throw new Error('Failed to create shared expense');
+  };
+
+  const updateSharedExpense = async (input: SharedExpenseUpdate) => {
+    const { data, error } = await supabase.rpc('update_shared_expense', {
+      p_id: input.id,
+      p_user_id: localUserId,
+      p_description: input.description ?? null,
+      p_total_amount: input.total_amount ?? null,
+      p_split_count: input.split_count ?? null,
+      p_my_share: input.my_share ?? null,
+      p_month_key: input.month_key ?? null,
+      p_include_in_expenses: input.include_in_expenses ?? null,
+    });
+    if (error) throw new Error(error.message);
+    if (data && data.length > 0) {
+      setSharedExpenses(prev => prev.map(s => s.id === input.id ? (data[0] as SharedExpense) : s));
+    }
   };
 
   const deleteSharedExpense = async (id: string) => {
@@ -347,14 +417,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         loading,
         refetchAll,
         createIncome,
+        updateIncome,
         deleteIncome,
         createExpense,
+        updateExpense,
         deleteExpense,
         toggleExpenseRecurring,
         createInstallment,
+        updateInstallment,
         deleteInstallment,
         markInstallmentPaid,
         createSharedExpense,
+        updateSharedExpense,
         deleteSharedExpense,
         toggleSharedInclude,
         exportCSV,

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import DashboardPage   from '@/pages/DashboardPage';
 import IncomePage       from '@/pages/IncomePage';
 import ExpensesPage     from '@/pages/ExpensesPage';
 import InstallmentsPage from '@/pages/InstallmentsPage';
@@ -12,7 +13,8 @@ export default function App() {
     <DataProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/"             element={<IncomePage />} />
+          <Route path="/"             element={<DashboardPage />} />
+          <Route path="/income"       element={<IncomePage />} />
           <Route path="/expenses"     element={<ExpensesPage />} />
           <Route path="/installments" element={<InstallmentsPage />} />
           <Route path="/shared"       element={<SharedPage />} />

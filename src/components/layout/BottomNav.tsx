@@ -1,16 +1,29 @@
-import { NavLink } from 'react-router-dom';
+import { useRef, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { clsx } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { to: '/',             emoji: '💰', label: 'รายรับ'    },
+  { to: '/',             emoji: '🏠', label: 'รายรับ-รายจ่าย'      },
+  { to: '/income',       emoji: '💰', label: 'รายรับ'    },
   { to: '/expenses',     emoji: '💸', label: 'รายจ่าย'   },
   { to: '/installments', emoji: '📋', label: 'ผ่อน'       },
   { to: '/shared',       emoji: '🤝', label: 'ซื้อร่วม'  },
-  { to: '/chart',        emoji: '📊', label: 'กราฟ'       },
   { to: '/forecast',     emoji: '🔮', label: 'พยากรณ์'   },
+  { to: '/chart',        emoji: '📜', label: 'ประวัติ'   },
 ] as const;
 
 export default function BottomNav() {
+  const listRef = useRef<HTMLUListElement>(null);
+  const location = useLocation();
+
+  // Auto-scroll active item into view
+  useEffect(() => {
+    if (!listRef.current) return;
+    const activeLink = listRef.current.querySelector('[aria-current="page"]') as HTMLElement | null;
+    if (!activeLink) return;
+    activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [location.pathname]);
+
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-[0_-1px_20px_rgba(0,0,0,0.06)]"
@@ -21,15 +34,19 @@ export default function BottomNav() {
       }}
       aria-label="Main navigation"
     >
-      <ul className="flex items-center justify-around h-16">
+      <ul
+        ref={listRef}
+        className="flex items-center h-16 overflow-x-auto overflow-y-hidden scrollbar-none snap-x snap-mandatory"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {NAV_ITEMS.map(({ to, emoji, label }) => (
-          <li key={to} className="flex-1">
+          <li key={to} className="snap-center shrink-0">
             <NavLink
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
                 clsx(
-                  'flex flex-col items-center justify-center gap-0.5 py-2 w-full min-h-[48px] transition-all duration-200',
+                  'flex flex-col items-center justify-center gap-0.5 py-2 w-[72px] min-h-[48px] transition-all duration-200',
                   isActive ? 'text-brand-600' : 'text-slate-400 hover:text-slate-700'
                 )
               }

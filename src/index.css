@@ -48,6 +48,11 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+
+  /* Hide scrollbar for nav scrollable areas */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }

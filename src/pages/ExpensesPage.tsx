@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Trash2, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useData } from '@/hooks/useData';
 import {
   formatCurrency,
@@ -22,6 +23,8 @@ export default function ExpensesPage() {
   const [modalMonth, setModalMonth] = useState(currentMonthKey());
   const [saving, setSaving] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<typeof ctx.expenses[0] | null>(null);
 
   // Auto-carry recurring expenses to months that have no data yet
   const autoCarriedMonths = useRef<Set<string>>(new Set());
@@ -67,11 +70,20 @@ export default function ExpensesPage() {
   const oneTimeExpenses = monthExpenses.filter(e => !e.is_recurring);
   const total = monthExpenses.reduce((s, e) => s + e.amount, 0);
 
-  const openModal = () => {
-    setName('');
-    setAmount('');
-    setIsRecurring(false);
-    setModalMonth(monthKey);
+  const openModal = (exp?: typeof ctx.expenses[0]) => {
+    if (exp) {
+      setEditTarget(exp);
+      setName(exp.name);
+      setAmount(String(exp.amount));
+      setIsRecurring(exp.is_recurring);
+      setModalMonth(exp.month_key);
+    } else {
+      setEditTarget(null);
+      setName('');
+      setAmount('');
+      setIsRecurring(false);
+      setModalMonth(monthKey);
+    }
     setShowModal(true);
   };
 
@@ -80,12 +92,16 @@ export default function ExpensesPage() {
     if (!name.trim() || isNaN(amt) || amt <= 0) return;
     setSaving(true);
     try {
-      await ctx.createExpense({
-        name: name.trim(),
-        amount: amt,
-        month_key: modalMonth,
-        is_recurring: isRecurring,
-      });
+      if (editTarget) {
+        await ctx.updateExpense({ id: editTarget.id, name: name.trim(), amount: amt, month_key: modalMonth, is_recurring: isRecurring });
+      } else {
+        await ctx.createExpense({
+          name: name.trim(),
+          amount: amt,
+          month_key: modalMonth,
+          is_recurring: isRecurring,
+        });
+      }
       setShowModal(false);
     } finally {
       setSaving(false);
@@ -93,33 +109,17 @@ export default function ExpensesPage() {
   };
 
   return (
-    <Layout>
+    <>
+    <Layout monthKey={monthKey} onMonthChange={setMonthKey}>
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-slate-900">💸 รายจ่าย</h1>
           <button
-            onClick={openModal}
+            onClick={() => openModal()}
             className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center shadow-md active:scale-95"
           >
             <Plus size={20} className="text-slate-900" />
-          </button>
-        </div>
-
-        {/* Month picker */}
-        <div className="flex items-center justify-between bg-white rounded-2xl px-3 py-2 mb-4 border border-slate-200 shadow-sm">
-          <button
-            onClick={() => setMonthKey(k => advanceMonthKey(k, -1))}
-            className="p-0.5 text-slate-400 hover:text-slate-700"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="font-semibold text-slate-900">{formatMonthKeyThai(monthKey)}</span>
-          <button
-            onClick={() => setMonthKey(k => advanceMonthKey(k, 1))}
-            className="p-0.5 text-slate-400 hover:text-slate-700"
-          >
-            <ChevronRight size={16} />
           </button>
         </div>
 
@@ -172,7 +172,13 @@ export default function ExpensesPage() {
                         <RefreshCw size={14} />
                       </button>
                       <button
-                        onClick={() => ctx.deleteExpense(exp.id)}
+                        onClick={() => openModal(exp)}
+                        className="shrink-0 text-slate-300 hover:text-blue-500 transition-colors"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                      onClick={() => setDeleteTarget({ id: exp.id, name: exp.name })}
                         className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
                       >
                         <Trash2 size={16} />
@@ -211,7 +217,13 @@ export default function ExpensesPage() {
                         <RefreshCw size={14} />
                       </button>
                       <button
-                        onClick={() => ctx.deleteExpense(exp.id)}
+                        onClick={() => openModal(exp)}
+                        className="shrink-0 text-slate-300 hover:text-blue-500 transition-colors"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget({ id: exp.id, name: exp.name })}
                         className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
                       >
                         <Trash2 size={16} />
@@ -225,7 +237,7 @@ export default function ExpensesPage() {
         )}
       </div>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="เพิ่มรายจ่าย">
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={editTarget ? 'แก้ไขรายจ่าย' : 'เพิ่มรายจ่าย'}>
         <div className="p-5 space-y-4">
           <div className="relative">
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
@@ -309,6 +321,18 @@ export default function ExpensesPage() {
           </Button>
         </div>
       </Modal>
-    </Layout>
+      </Layout>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="ลบรายจ่าย"
+        message={`ต้องการลบ "${deleteTarget?.name ?? ''}" ใช่หรือไม่?`}
+        onConfirm={() => {
+          if (deleteTarget) ctx.deleteExpense(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    </>
   );
 }

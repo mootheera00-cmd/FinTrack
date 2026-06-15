@@ -1,7 +1,7 @@
 {
-  "name": "FinTrack",
-  "short_name": "FinTrack",
-  "description": "แอปบันทึกการเงินส่วนตัว",
+  "name": "บันทึกรายรับ-รายจ่าย",
+  "short_name": "รายรับ-รายจ่าย",
+  "description": "แอปบันทึกรายรับรายจ่ายส่วนตัว",
   "theme_color": "#FFBF00",
   "background_color": "#fffdf5",
   "display": "standalone",

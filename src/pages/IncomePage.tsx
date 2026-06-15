@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useData } from '@/hooks/useData';
 import {
   formatCurrency,
@@ -20,14 +21,24 @@ export default function IncomePage() {
   const [amount, setAmount] = useState('');
   const [modalMonth, setModalMonth] = useState(currentMonthKey());
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<typeof ctx.incomes[0] | null>(null);
 
   const monthIncomes = ctx.incomes.filter(i => i.month_key === monthKey);
   const total = monthIncomes.reduce((s, i) => s + i.amount, 0);
 
-  const openModal = () => {
-    setName('');
-    setAmount('');
-    setModalMonth(monthKey);
+  const openModal = (inc?: typeof ctx.incomes[0]) => {
+    if (inc) {
+      setEditTarget(inc);
+      setName(inc.name);
+      setAmount(String(inc.amount));
+      setModalMonth(inc.month_key);
+    } else {
+      setEditTarget(null);
+      setName('');
+      setAmount('');
+      setModalMonth(monthKey);
+    }
     setShowModal(true);
   };
 
@@ -36,7 +47,11 @@ export default function IncomePage() {
     if (!name.trim() || isNaN(amt) || amt <= 0) return;
     setSaving(true);
     try {
-      await ctx.createIncome({ name: name.trim(), amount: amt, month_key: modalMonth });
+      if (editTarget) {
+        await ctx.updateIncome({ id: editTarget.id, name: name.trim(), amount: amt, month_key: modalMonth });
+      } else {
+        await ctx.createIncome({ name: name.trim(), amount: amt, month_key: modalMonth });
+      }
       setShowModal(false);
     } finally {
       setSaving(false);
@@ -44,33 +59,16 @@ export default function IncomePage() {
   };
 
   return (
-    <Layout>
+    <Layout monthKey={monthKey} onMonthChange={setMonthKey}>
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-slate-900">💰 รายรับ</h1>
           <button
-            onClick={openModal}
+            onClick={() => openModal()}
             className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center shadow-md active:scale-95"
           >
             <Plus size={20} className="text-slate-900" />
-          </button>
-        </div>
-
-        {/* Month picker */}
-        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-4 border border-slate-200 shadow-sm">
-          <button
-            onClick={() => setMonthKey(k => advanceMonthKey(k, -1))}
-            className="p-1 text-slate-500 hover:text-slate-900"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <span className="font-semibold text-slate-900">{formatMonthKeyThai(monthKey)}</span>
-          <button
-            onClick={() => setMonthKey(k => advanceMonthKey(k, 1))}
-            className="p-1 text-slate-500 hover:text-slate-900"
-          >
-            <ChevronRight size={20} />
           </button>
         </div>
 
@@ -103,19 +101,38 @@ export default function IncomePage() {
                 <p className="font-bold text-emerald-600 tabular-nums shrink-0">
                   {formatCurrency(inc.amount)}
                 </p>
-                <button
-                  onClick={() => ctx.deleteIncome(inc.id)}
-                  className="shrink-0 text-slate-300 hover:text-rose-500 transition-colors"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => openModal(inc)}
+                    className="text-slate-300 hover:text-blue-500 transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget({ id: inc.id, name: inc.name })}
+                    className="text-slate-300 hover:text-rose-500 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </Card>
             ))}
           </div>
         )}
       </div>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="เพิ่มรายรับ">
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="ลบรายรับ"
+        message={`ต้องการลบ "${deleteTarget?.name ?? ''}" ใช่หรือไม่?`}
+        onConfirm={() => {
+          if (deleteTarget) ctx.deleteIncome(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={editTarget ? 'แก้ไขรายรับ' : 'เพิ่มรายรับ'}>
         <div className="p-5 space-y-4">
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">

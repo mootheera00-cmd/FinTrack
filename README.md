@@ -1,7 +1,7 @@
-# FinTrack ??
+# à¸šà¸±à¸™à¸—à¸¶à¸à¸£à¸²à¸¢à¸£à¸±à¸š-à¸£à¸²à¸¢à¸ˆà¹ˆà¸²à¸¢
 
 > **Mobile-first Personal Finance & Credit Card Installment Manager**
-> Built as a Progressive Web App (PWA) — installable on iPhone via Safari.
+> Built as a Progressive Web App (PWA) ï¿½ installable on iPhone via Safari.
 
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178c6?logo=typescript)](https://www.typescriptlang.org)
@@ -32,36 +32,36 @@
 
 ### ?? High Priority (Core Functionality)
 
-- [ ] **Authentication UI** — Sign-up / Sign-in screen (Email + Password or Google OAuth via Supabase Auth)
-- [ ] **Add Transaction Modal** — Form to create income/expense entries (tap the `+` button in Transactions)
-- [ ] **Add Credit Card Modal** — Form to add a new card (card name, bank, statement day, due day, color picker)
-- [ ] **Add Installment Modal** — Form to record a new installment under a specific card (linked to `credit_card_id`)
-- [ ] **Edit / Delete Transaction** — Swipe-to-delete or edit modal for existing entries
-- [ ] **Update Liquid Cash** — Quick-edit widget on Dashboard to update `profiles.liquid_cash` without going to Settings
+- [ ] **Authentication UI** ï¿½ Sign-up / Sign-in screen (Email + Password or Google OAuth via Supabase Auth)
+- [ ] **Add Transaction Modal** ï¿½ Form to create income/expense entries (tap the `+` button in Transactions)
+- [ ] **Add Credit Card Modal** ï¿½ Form to add a new card (card name, bank, statement day, due day, color picker)
+- [ ] **Add Installment Modal** ï¿½ Form to record a new installment under a specific card (linked to `credit_card_id`)
+- [ ] **Edit / Delete Transaction** ï¿½ Swipe-to-delete or edit modal for existing entries
+- [ ] **Update Liquid Cash** ï¿½ Quick-edit widget on Dashboard to update `profiles.liquid_cash` without going to Settings
 
 ### ?? Medium Priority (UX Improvements)
 
-- [ ] **Date Picker** — Replace plain date input with a mobile-friendly date picker for transactions
-- [ ] **Category Icon Map** — Display proper SVG/Lucide icons instead of emoji per category
-- [ ] **Monthly Navigation** — Let users scroll back to previous months on the Transactions page
-- [ ] **Installment "Mark as Paid"** — Button on each installment card to increment `paid_months` by 1
-- [ ] **Card Color Picker** — Visual swatch grid when adding/editing a credit card
-- [ ] **Empty States** — Better illustrated empty states for Cards and Transactions pages
-- [ ] **Pull-to-Refresh** — Touch gesture on mobile to trigger data refresh
-- [ ] **Toast Notifications** — Feedback on successful create/delete/update actions
-- [ ] **Loading Skeleton Polish** — Match skeleton shape to actual card layout
+- [ ] **Date Picker** ï¿½ Replace plain date input with a mobile-friendly date picker for transactions
+- [ ] **Category Icon Map** ï¿½ Display proper SVG/Lucide icons instead of emoji per category
+- [ ] **Monthly Navigation** ï¿½ Let users scroll back to previous months on the Transactions page
+- [ ] **Installment "Mark as Paid"** ï¿½ Button on each installment card to increment `paid_months` by 1
+- [ ] **Card Color Picker** ï¿½ Visual swatch grid when adding/editing a credit card
+- [ ] **Empty States** ï¿½ Better illustrated empty states for Cards and Transactions pages
+- [ ] **Pull-to-Refresh** ï¿½ Touch gesture on mobile to trigger data refresh
+- [ ] **Toast Notifications** ï¿½ Feedback on successful create/delete/update actions
+- [ ] **Loading Skeleton Polish** ï¿½ Match skeleton shape to actual card layout
 
 ### ?? Low Priority (Polish & Extras)
 
-- [ ] **Bill Reminder Notifications** — Push notification when a card due date is approaching (Web Push API + Supabase Edge Function)
-- [ ] **Monthly Comparison Chart** — Bar chart (Recharts or Chart.js) for income vs expense trends
-- [ ] **Export to CSV** — Let users download their transactions as a spreadsheet
-- [ ] **Multiple Currencies** — Currency selector in Settings (currently hardcoded to THB)
-- [ ] **Biometric Lock** — Lock the app with Face ID / Touch ID via the Web Authentication API
-- [ ] **Dark Mode Toggle** — System-aware dark/light mode switch in Settings
-- [ ] **Onboarding Flow** — Welcome screen for new users to set income, cash balance, and first card
-- [ ] **Unit Tests** — Vitest + React Testing Library coverage for hooks and utility functions
-- [ ] **E2E Tests** — Playwright test suite for critical flows (auth, add transaction, forecast)
+- [ ] **Bill Reminder Notifications** ï¿½ Push notification when a card due date is approaching (Web Push API + Supabase Edge Function)
+- [ ] **Monthly Comparison Chart** ï¿½ Bar chart (Recharts or Chart.js) for income vs expense trends
+- [ ] **Export to CSV** ï¿½ Let users download their transactions as a spreadsheet
+- [ ] **Multiple Currencies** ï¿½ Currency selector in Settings (currently hardcoded to THB)
+- [ ] **Biometric Lock** ï¿½ Lock the app with Face ID / Touch ID via the Web Authentication API
+- [ ] **Dark Mode Toggle** ï¿½ System-aware dark/light mode switch in Settings
+- [ ] **Onboarding Flow** ï¿½ Welcome screen for new users to set income, cash balance, and first card
+- [ ] **Unit Tests** ï¿½ Vitest + React Testing Library coverage for hooks and utility functions
+- [ ] **E2E Tests** ï¿½ Playwright test suite for critical flows (auth, add transaction, forecast)
 
 ---
 
@@ -70,38 +70,38 @@
 ```
 FinTrack/
 +-- public/
-¦   +-- manifest.json              # PWA manifest (icons, theme, display mode)
+ï¿½   +-- manifest.json              # PWA manifest (icons, theme, display mode)
 +-- supabase/
-¦   +-- schema.sql                 # Full PostgreSQL schema + RLS policies
+ï¿½   +-- schema.sql                 # Full PostgreSQL schema + RLS policies
 +-- src/
-¦   +-- types/
-¦   ¦   +-- index.ts               # All TypeScript domain types & enums
-¦   +-- lib/
-¦   ¦   +-- supabase.ts            # Supabase client singleton
-¦   ¦   +-- utils.ts               # formatCurrency, date helpers, clsx
-¦   +-- hooks/
-¦   ¦   +-- useProfile.ts          # Logged-in user profile CRUD
-¦   ¦   +-- useTransactions.ts     # Transaction CRUD + monthly totals
-¦   ¦   +-- useCreditCards.ts      # Credit card CRUD (soft-delete)
-¦   ¦   +-- useInstallments.ts     # Installment CRUD + markPaid
-¦   ¦   +-- useForecasting.ts      # "Safe to Spend" calculation (pure)
-¦   +-- components/
-¦   ¦   +-- layout/
-¦   ¦   ¦   +-- Layout.tsx         # Root wrapper — safe-area, bg, min-h-screen
-¦   ¦   ¦   +-- Header.tsx         # Sticky iOS-style page header
-¦   ¦   ¦   +-- BottomNav.tsx      # Fixed 4-tab bottom navigation bar
-¦   ¦   +-- ui/
-¦   ¦       +-- Card.tsx           # Card + StatCard reusable primitives
-¦   ¦       +-- Badge.tsx          # Semantic color badges (income/expense/info…)
-¦   ¦       +-- Button.tsx         # Button with size & variant system
-¦   +-- pages/
-¦   ¦   +-- Dashboard.tsx          # Home: balance hero, stats, forecast, recent txns
-¦   ¦   +-- Transactions.tsx       # Filterable + searchable transaction list
-¦   ¦   +-- Cards.tsx              # Credit card tiles + installment progress
-¦   ¦   +-- Settings.tsx           # Profile edit, income/cash update, sign-out
-¦   +-- App.tsx                    # React Router v6 route definitions
-¦   +-- main.tsx                   # React 19 createRoot entry point
-¦   +-- index.css                  # Tailwind directives + safe-area utilities
+ï¿½   +-- types/
+ï¿½   ï¿½   +-- index.ts               # All TypeScript domain types & enums
+ï¿½   +-- lib/
+ï¿½   ï¿½   +-- supabase.ts            # Supabase client singleton
+ï¿½   ï¿½   +-- utils.ts               # formatCurrency, date helpers, clsx
+ï¿½   +-- hooks/
+ï¿½   ï¿½   +-- useProfile.ts          # Logged-in user profile CRUD
+ï¿½   ï¿½   +-- useTransactions.ts     # Transaction CRUD + monthly totals
+ï¿½   ï¿½   +-- useCreditCards.ts      # Credit card CRUD (soft-delete)
+ï¿½   ï¿½   +-- useInstallments.ts     # Installment CRUD + markPaid
+ï¿½   ï¿½   +-- useForecasting.ts      # "Safe to Spend" calculation (pure)
+ï¿½   +-- components/
+ï¿½   ï¿½   +-- layout/
+ï¿½   ï¿½   ï¿½   +-- Layout.tsx         # Root wrapper ï¿½ safe-area, bg, min-h-screen
+ï¿½   ï¿½   ï¿½   +-- Header.tsx         # Sticky iOS-style page header
+ï¿½   ï¿½   ï¿½   +-- BottomNav.tsx      # Fixed 4-tab bottom navigation bar
+ï¿½   ï¿½   +-- ui/
+ï¿½   ï¿½       +-- Card.tsx           # Card + StatCard reusable primitives
+ï¿½   ï¿½       +-- Badge.tsx          # Semantic color badges (income/expense/infoï¿½)
+ï¿½   ï¿½       +-- Button.tsx         # Button with size & variant system
+ï¿½   +-- pages/
+ï¿½   ï¿½   +-- Dashboard.tsx          # Home: balance hero, stats, forecast, recent txns
+ï¿½   ï¿½   +-- Transactions.tsx       # Filterable + searchable transaction list
+ï¿½   ï¿½   +-- Cards.tsx              # Credit card tiles + installment progress
+ï¿½   ï¿½   +-- Settings.tsx           # Profile edit, income/cash update, sign-out
+ï¿½   +-- App.tsx                    # React Router v6 route definitions
+ï¿½   +-- main.tsx                   # React 19 createRoot entry point
+ï¿½   +-- index.css                  # Tailwind directives + safe-area utilities
 +-- index.html                     # viewport-fit=cover, apple-mobile-web-app meta
 +-- vite.config.ts                 # Vite + vite-plugin-pwa config
 +-- tailwind.config.js             # Custom surface/brand color tokens
@@ -132,7 +132,7 @@ FinTrack/
 
 ### Row Level Security
 
-All four tables have RLS enabled. Every policy uses `auth.uid() = user_id` — users can only read and write their own rows.
+All four tables have RLS enabled. Every policy uses `auth.uid() = user_id` ï¿½ users can only read and write their own rows.
 
 ---
 
@@ -145,7 +145,7 @@ Safe to Spend =
   ( This Month's Expenses + Total Active Installment Charges )
 ```
 
-Implemented in `src/hooks/useForecasting.ts` — purely client-side, no extra DB calls.
+Implemented in `src/hooks/useForecasting.ts` ï¿½ purely client-side, no extra DB calls.
 
 ---
 
@@ -205,7 +205,7 @@ npm run build
 3. Add environment variables in Vercel:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
-4. Click **Deploy** — PWA assets (manifest + service worker) are built automatically by `vite-plugin-pwa`
+4. Click **Deploy** ï¿½ PWA assets (manifest + service worker) are built automatically by `vite-plugin-pwa`
 5. In Supabase ? **Authentication ? URL Configuration** ? add your Vercel production URL
 
 ---
@@ -215,8 +215,8 @@ npm run build
 1. Open the deployed URL in **Safari** on iPhone
 2. Tap the **Share** button (square with arrow)
 3. Scroll down ? tap **"Add to Home Screen"**
-4. Confirm — the app icon appears on your home screen
-5. Launch it — runs in **standalone mode** (no browser chrome) with correct safe-area insets
+4. Confirm ï¿½ the app icon appears on your home screen
+5. Launch it ï¿½ runs in **standalone mode** (no browser chrome) with correct safe-area insets
 
 ---
 
@@ -237,4 +237,4 @@ npm run build
 
 ## ?? License
 
-MIT — free to use, modify, and distribute.
+MIT ï¿½ free to use, modify, and distribute.

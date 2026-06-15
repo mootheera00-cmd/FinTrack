@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Plus, Trash2, Pencil, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useData } from '@/hooks/useData';
 import {
   formatCurrency,
@@ -22,6 +23,8 @@ export default function SharedPage() {
   const [modalMonth, setModalMonth] = useState(currentMonthKey());
   const [includeInExpenses, setIncludeInExpenses] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<typeof ctx.sharedExpenses[0] | null>(null);
 
   const monthShared = ctx.sharedExpenses.filter(s => s.month_key === monthKey);
   const myShareTotal = monthShared.reduce((s, e) => s + e.my_share, 0);
@@ -36,12 +39,22 @@ export default function SharedPage() {
     return 0;
   };
 
-  const openModal = () => {
-    setDesc('');
-    setTotalAmount('');
-    setSplitCount('2');
-    setModalMonth(monthKey);
-    setIncludeInExpenses(false);
+  const openModal = (se?: typeof ctx.sharedExpenses[0]) => {
+    if (se) {
+      setEditTarget(se);
+      setDesc(se.description);
+      setTotalAmount(String(se.total_amount));
+      setSplitCount(String(se.split_count));
+      setModalMonth(se.month_key);
+      setIncludeInExpenses(se.include_in_expenses);
+    } else {
+      setEditTarget(null);
+      setDesc('');
+      setTotalAmount('');
+      setSplitCount('2');
+      setModalMonth(monthKey);
+      setIncludeInExpenses(false);
+    }
     setShowModal(true);
   };
 
@@ -52,14 +65,26 @@ export default function SharedPage() {
     const myShare = ta / sc;
     setSaving(true);
     try {
-      await ctx.createSharedExpense({
-        description: desc.trim(),
-        total_amount: ta,
-        split_count: sc,
-        my_share: myShare,
-        month_key: modalMonth,
-        include_in_expenses: includeInExpenses,
-      });
+      if (editTarget) {
+        await ctx.updateSharedExpense({
+          id: editTarget.id,
+          description: desc.trim(),
+          total_amount: ta,
+          split_count: sc,
+          my_share: myShare,
+          month_key: modalMonth,
+          include_in_expenses: includeInExpenses,
+        });
+      } else {
+        await ctx.createSharedExpense({
+          description: desc.trim(),
+          total_amount: ta,
+          split_count: sc,
+          my_share: myShare,
+          month_key: modalMonth,
+          include_in_expenses: includeInExpenses,
+        });
+      }
       setShowModal(false);
     } finally {
       setSaving(false);
@@ -67,33 +92,17 @@ export default function SharedPage() {
   };
 
   return (
-    <Layout>
+    <>
+    <Layout monthKey={monthKey} onMonthChange={setMonthKey}>
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-slate-900">🤝 ซื้อร่วม</h1>
           <button
-            onClick={openModal}
+            onClick={() => openModal()}
             className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center shadow-md active:scale-95"
           >
             <Plus size={20} className="text-slate-900" />
-          </button>
-        </div>
-
-        {/* Month picker */}
-        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-4 border border-slate-200 shadow-sm">
-          <button
-            onClick={() => setMonthKey(k => advanceMonthKey(k, -1))}
-            className="p-1 text-slate-500 hover:text-slate-900"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <span className="font-semibold text-slate-900">{formatMonthKeyThai(monthKey)}</span>
-          <button
-            onClick={() => setMonthKey(k => advanceMonthKey(k, 1))}
-            className="p-1 text-slate-500 hover:text-slate-900"
-          >
-            <ChevronRight size={20} />
           </button>
         </div>
 
@@ -131,12 +140,20 @@ export default function SharedPage() {
                       <span>แบ่ง {se.split_count} คน • รวม {formatCurrency(se.total_amount)}</span>
                     </div>
                   </div>
+                  <div className="flex items-center gap-1 ml-2 shrink-0">
                   <button
-                    onClick={() => ctx.deleteSharedExpense(se.id)}
-                    className="text-slate-300 hover:text-rose-500 transition-colors ml-2 shrink-0"
+                    onClick={() => openModal(se)}
+                    className="text-slate-300 hover:text-blue-500 transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget({ id: se.id, name: se.description })}
+                    className="text-slate-300 hover:text-rose-500 transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -163,7 +180,7 @@ export default function SharedPage() {
         )}
       </div>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="เพิ่มรายการซื้อร่วม">
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={editTarget ? 'แก้ไขรายการซื้อร่วม' : 'เพิ่มรายการซื้อร่วม'}>
         <div className="p-5 space-y-4">
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
@@ -252,6 +269,18 @@ export default function SharedPage() {
           </Button>
         </div>
       </Modal>
-    </Layout>
+      </Layout>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="ลบซื้อร่วม"
+        message={`ต้องการลบ "${deleteTarget?.name ?? ''}" ใช่หรือไม่?`}
+        onConfirm={() => {
+          if (deleteTarget) ctx.deleteSharedExpense(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    </>
   );
 }
