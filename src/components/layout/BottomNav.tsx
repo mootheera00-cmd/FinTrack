@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, TrendingUp, TrendingDown, ClipboardList, Users, Sparkles, History, Settings } from 'lucide-react';
 import { clsx } from '@/lib/utils';
@@ -14,17 +14,38 @@ const NAV_ITEMS = [
   { to: '/settings',     Icon: Settings,        label: 'ตั้งค่า'   },
 ] as const;
 
+const ITEMS_PER_PAGE = 4;
+
+/** Group array into chunks of size n */
+function chunkItems<T>(arr: readonly T[], size: number): T[][] {
+  return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+    arr.slice(i * size, i * size + size) as T[]
+  );
+}
+
 export default function BottomNav() {
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  // Auto-scroll active item into view
+  const pages = useMemo(() => chunkItems(NAV_ITEMS, ITEMS_PER_PAGE), []);
+
+  // Determine which page the active item is on, then scroll there
+  const activeIndex = useMemo(
+    () => NAV_ITEMS.findIndex(item => item.to === location.pathname),
+    [location.pathname]
+  );
+  const activePage = activeIndex >= 0 ? Math.floor(activeIndex / ITEMS_PER_PAGE) : 0;
+
+  // Auto-scroll to the active page
   useEffect(() => {
     if (!listRef.current) return;
-    const activeLink = listRef.current.querySelector('[aria-current="page"]') as HTMLElement | null;
-    if (!activeLink) return;
-    activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [location.pathname]);
+    const container = listRef.current;
+    const pageWidth = container.clientWidth;
+    container.scrollTo({
+      left: activePage * pageWidth,
+      behavior: 'smooth',
+    });
+  }, [activePage]);
 
   return (
     <nav
@@ -36,45 +57,69 @@ export default function BottomNav() {
       }}
       aria-label="Main navigation"
     >
-      <ul
-        ref={listRef}
-        className="flex items-center h-16 overflow-x-auto overflow-y-hidden scrollbar-none snap-x snap-mandatory"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {NAV_ITEMS.map(({ to, Icon, label }) => (
-          <li key={to} className="snap-center shrink-0">
-            <NavLink
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                clsx(
-                  'flex flex-col items-center justify-center gap-0.5 py-2 w-[72px] min-h-[48px] transition-all duration-200',
-                  isActive ? 'text-neutral-900' : 'text-neutral-400 hover:text-neutral-700'
-                )
-              }
-              aria-label={label}
+      <div className="relative">
+        {/* Scrollable container — snaps by full width (4 items at a time) */}
+        <div
+          ref={listRef}
+          className="flex overflow-x-auto overflow-y-hidden scrollbar-none snap-x snap-mandatory h-16"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {pages.map((group, pageIdx) => (
+            <div
+              key={pageIdx}
+              className="flex items-center justify-around flex-shrink-0 w-full snap-start px-2"
             >
-              {({ isActive }) => (
-                <>
-                  <Icon
-                    className={clsx(
-                      'transition-transform duration-200',
-                      isActive ? 'scale-110' : 'scale-100'
-                    )}
-                    size={22}
-                  />
-                  <span className={clsx(
-                    'text-[10px] font-medium tracking-wide transition-colors',
-                    isActive ? 'text-neutral-900' : 'text-neutral-400'
-                  )}>
-                    {label}
-                  </span>
-                </>
-              )}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+              {group.map(({ to, Icon, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={to === '/'}
+                  className={({ isActive }) =>
+                    clsx(
+                      'flex flex-col items-center justify-center gap-0.5 py-2 w-[72px] min-h-[48px] transition-all duration-200',
+                      isActive ? 'text-neutral-900' : 'text-neutral-400 hover:text-neutral-700'
+                    )
+                  }
+                  aria-label={label}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon
+                        className={clsx(
+                          'transition-transform duration-200',
+                          isActive ? 'scale-110' : 'scale-100'
+                        )}
+                        size={22}
+                      />
+                      <span className={clsx(
+                        'text-[10px] font-medium tracking-wide transition-colors',
+                        isActive ? 'text-neutral-900' : 'text-neutral-400'
+                      )}>
+                        {label}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Page dots indicator */}
+        {pages.length > 1 && (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
+            {pages.map((_, i) => (
+              <div
+                key={i}
+                className={clsx(
+                  'w-1 h-1 rounded-full transition-all duration-300',
+                  i === activePage ? 'bg-neutral-700 w-3' : 'bg-neutral-300'
+                )}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </nav>
   );
 }
